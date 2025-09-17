@@ -205,3 +205,9 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+.idea/
+
+# Shelves databases
+item_name_to_node_id.db
+post_id.db

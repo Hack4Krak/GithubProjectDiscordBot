@@ -1,5 +1,6 @@
+import asyncio
 import os
-import threading
+from contextlib import asynccontextmanager
 from typing import Any
 
 from fastapi import FastAPI, Request
@@ -18,12 +19,23 @@ from src.utils.data_types import (
 )
 from src.utils.utils import fetch_assignees, fetch_item_name, fetch_single_select_value, get_item_name
 
-app = FastAPI()
 
 state: dict[str, bool | list[ProjectItemEvent]] = {"update-received": False, "update-queue": []}
-lock: threading.Lock = threading.Lock()
-threading.Thread(target=run, args=(state, lock), daemon=True).start()
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # startup
+    task = asyncio.create_task(run(state))
+    yield
+    # shutdown
+    task.cancel()
+    try:
+        await task
+    except asyncio.CancelledError:
+        pass
+
+
+app = FastAPI(lifespan=lifespan)
 
 @app.post("/webhook_endpoint")
 async def webhook_endpoint(request: Request):
@@ -49,10 +61,9 @@ async def webhook_endpoint(request: Request):
             body["action"], item_name, body.get("sender", {}).get("login", "Unknown")
         )
 
-    with lock:
-        if project_item_event is not None:
-            state["update-queue"].append(project_item_event)
-            state["update-received"] = True
+    if project_item_event is not None:
+        state["update-queue"].append(project_item_event)
+        state["update-received"] = True
 
     return
 

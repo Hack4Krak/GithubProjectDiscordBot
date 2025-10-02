@@ -215,6 +215,18 @@ wheels = [
 ]
 
 [[package]]
+name = "colorlog"
+version = "6.9.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "colorama", marker = "sys_platform == 'win32'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/d3/7a/359f4d5df2353f26172b3cc39ea32daa39af8de522205f512f458923e677/colorlog-6.9.0.tar.gz", hash = "sha256:bfba54a1b93b94f54e1f4fe48395725a3d92fd2a4af702f6bd70946bdc0c6ac2", size = 16624, upload-time = "2024-10-29T18:34:51.011Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e3/51/9b208e85196941db2f0654ad0357ca6388ab3ed67efdbfc799f35d1f83aa/colorlog-6.9.0-py3-none-any.whl", hash = "sha256:5906e71acd67cb07a71e779c47c4bcb45fb8c2993eebe9e5adcd6a6f1b283eff", size = 11424, upload-time = "2024-10-29T18:34:49.815Z" },
+]
+
+[[package]]
 name = "discord-py"
 version = "2.6.3"
 source = { registry = "https://pypi.org/simple" }
@@ -391,6 +403,7 @@ dependencies = [
     { name = "discord-py" },
     { name = "dotenv" },
     { name = "fastapi", extra = ["standard"] },
+    { name = "hikari" },
     { name = "pre-commit" },
     { name = "pytest" },
     { name = "requests" },
@@ -398,17 +411,25 @@ dependencies = [
     { name = "setuptools" },
 ]
 
+[package.optional-dependencies]
+test = [
+    { name = "pytest" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "discord-py", specifier = ">=2.6.3" },
     { name = "dotenv", specifier = ">=0.9.9" },
     { name = "fastapi", extras = ["standard"], specifier = ">=0.117.1" },
+    { name = "hikari", specifier = ">=2.4.1" },
     { name = "pre-commit", specifier = ">=4.3.0" },
     { name = "pytest", specifier = ">=8.4.2" },
+    { name = "pytest", marker = "extra == 'test'" },
     { name = "requests", specifier = ">=2.32.5" },
     { name = "ruff", specifier = ">=0.13.1" },
     { name = "setuptools", specifier = ">=80.9.0" },
 ]
+provides-extras = ["test"]
 
 [[package]]
 name = "h11"
@@ -417,6 +438,21 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/01/ee/02a2c011bdab74c6fb3c75474d40b3052059d95df7e73351460c8588d963/h11-0.16.0.tar.gz", hash = "sha256:4e35b956cf45792e4caa5885e69fba00bdbc6ffafbfa020300e549b208ee5ff1", size = 101250, upload-time = "2025-04-24T03:35:25.427Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/04/4b/29cac41a4d98d144bf5f6d33995617b185d14b22401f75ca86f384e87ff1/h11-0.16.0-py3-none-any.whl", hash = "sha256:63cf8bbe7522de3bf65932fda1d9c2772064ffb3dae62d55932da54b31cb6c86", size = 37515, upload-time = "2025-04-24T03:35:24.344Z" },
+]
+
+[[package]]
+name = "hikari"
+version = "2.4.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "aiohttp" },
+    { name = "attrs" },
+    { name = "colorlog" },
+    { name = "multidict" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/f4/e1/c4fe33881475026b840109b48b26049122dfc1867b9454944cd3b84fbafc/hikari-2.4.1.tar.gz", hash = "sha256:fb423b90fdf26679e421af1eb04c6f5b4b3a07bc2de24f705b3468fdd6fae690", size = 1896038, upload-time = "2025-09-08T21:52:38.604Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/5a/d8/b9abc8901c01474f3e08f46ecd2ac16dabdebe4b6918ee3a42e3591ffab8/hikari-2.4.1-py3-none-any.whl", hash = "sha256:b8c71d9dd286c11487b3c8aaee45ad69e8a9237ba6774437aac286887e4adcec", size = 585380, upload-time = "2025-09-08T21:52:36.642Z" },
 ]
 
 [[package]]

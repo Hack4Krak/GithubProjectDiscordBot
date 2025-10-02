@@ -3,7 +3,7 @@ import os
 import shelve
 
 import requests
-from discord import ForumChannel, ForumTag, Thread
+from hikari.impl import RESTClientImpl
 
 
 async def get_item_name(item_node_id: str) -> str | None:
@@ -139,18 +139,18 @@ def fetch_single_select_value(item_node_id: str | None, field_name: str | None) 
     return name
 
 
-async def get_post_id(name: str, forum_channel: ForumChannel) -> int | None:
+async def get_post_id(name: str, forum_channel_id: int, rest_client: RESTClientImpl) -> int | None:
     with shelve.open("post_id.db") as db:
         try:
             post_id: str = db[name]
             return int(post_id)
         except KeyError:
             pass
-        for thread in forum_channel.threads:
+        for thread in await rest_client.fetch_active_threads(forum_channel_id):
             if thread.name == name:
                 db[name] = thread.id
                 return thread.id
-        async for thread in forum_channel.archived_threads():
+        for thread in await rest_client.fetch_public_archived_threads(forum_channel_id):
             if thread.name == name:
                 db[name] = thread.id
                 return thread.id
@@ -165,22 +165,3 @@ def retrieve_discord_id(username: str) -> str | None:
         mapping: dict[str, str] = json.loads("".join(file.readlines()))
 
         return mapping.get(username, None)
-
-
-def get_tags_for_single_select_type(section: str, tags: list[ForumTag]) -> list[ForumTag]:
-    tags_for_single_select_type: list[ForumTag] = []
-    for tag in tags:
-        if tag.name.startswith(section + ": "):
-            tags_for_single_select_type.append(tag)
-
-    return tags_for_single_select_type
-
-
-async def add_tag_to_thread(thread: Thread, forum_channel: ForumChannel, tag_name: str, single_select_type: str):
-    tags = get_tags_for_single_select_type(single_select_type, list(forum_channel.available_tags))
-    for tag in tags:
-        if tag.name == tag_name:
-            await thread.add_tags(tag)
-            return
-    await forum_channel.create_tag(name=tag_name)
-    await add_tag_to_thread(thread, forum_channel, tag_name, single_select_type)

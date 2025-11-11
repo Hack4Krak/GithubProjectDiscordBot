@@ -172,7 +172,7 @@ async def test_get_post_id_active_thread(mock_shelve_open, mock_fetch_active_thr
     mock_shelve_open.return_value = mock_shelf
     mock_fetch_active_threads.return_value = [post_mock]
 
-    assert await utils.get_post_id("audacity4", 1, 1, rest_client_mock) == 621
+    assert await utils.get_post_id("audacity4", 1, 1, rest_client_mock) == post_mock
     assert mock_shelf.get("audacity4") == 621
 
 
@@ -187,7 +187,7 @@ async def test_get_post_id_archived_thread(
     mock_fetch_active_threads.return_value = []
     mock_fetch_public_archived_threads.return_value = [post_mock]
 
-    assert await utils.get_post_id("audacity4", 1, 1, rest_client_mock) == 621
+    assert await utils.get_post_id("audacity4", 1, 1, rest_client_mock) == post_mock
     assert mock_shelf.get("audacity4") == 621
 
 

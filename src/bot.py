@@ -13,7 +13,7 @@ from src.utils.data_types import (
     SimpleProjectItemEvent,
 )
 from src.utils.error import ForumChannelNotFound
-from src.utils.logging import bot_info
+from src.utils.logging import bot_error, bot_info
 from src.utils.utils import fetch_forum_channel, get_new_tag, get_post_id, retrieve_discord_id
 
 
@@ -44,11 +44,11 @@ async def process_update(
 ):
     event = await state.get()
     bot_info(f"Processing event for item: {event.name}")
-    post_id = await get_post_id(event.name, discord_guild_id, forum_channel_id, client)
+    post_id_or_post = await get_post_id(event.name, discord_guild_id, forum_channel_id, client)
     author_discord_id = retrieve_discord_id(event.sender)
     user_mentions = [author_discord_id] if author_discord_id else []
     user_text_mention = f"<@{author_discord_id}>" if author_discord_id else "nieznany użytkownik"
-    if post_id is None:
+    if post_id_or_post is None:
         bot_info(f"Post not found, creating new post for item: {event.name}")
         message = f"Nowy task stworzony {event.name} przez: {user_text_mention}.>"
         post: GuildPublicThread = await client.create_forum_post(
@@ -58,10 +58,16 @@ async def process_update(
             auto_archive_duration=10080,
             user_mentions=user_mentions,
         )
+    elif isinstance(post_id_or_post, int):
+        post = await client.fetch_channel(post_id_or_post)
     else:
-        post = await client.fetch_channel(post_id)
+        post = post_id_or_post
 
     if not isinstance(post, GuildPublicThread):
+        try:
+            bot_error(f"Post with ID {post.id} is not a GuildPublicThread.")
+        except AttributeError:
+            bot_error(f"Post with ID {post_id_or_post} is not a Discord channel object.")
         return
 
     if isinstance(event, SimpleProjectItemEvent):

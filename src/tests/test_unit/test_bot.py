@@ -77,7 +77,7 @@ async def test_process_update_already_exists(
 ):
     state = asyncio.Queue()
     await state.put(SimpleProjectItemEvent("mmmocking", "norbiros", SimpleProjectItemEventType.CREATED))
-    mock_get_post_id.return_value = "1"
+    mock_get_post_id.return_value = 1
     mock_retrieve_discord_id.return_value = "2137696742041"
 
     await process_update(rest_client_mock, 1, 1, forum_channel_mock, state)
@@ -101,7 +101,7 @@ async def test_process_update_archived(
 ):
     state = asyncio.Queue()
     await state.put(SimpleProjectItemEvent("audacity4", "norbiros", SimpleProjectItemEventType.ARCHIVED))
-    mock_get_post_id.return_value = "621"
+    mock_get_post_id.return_value = 621
     user_id = 2137696742041
     mock_retrieve_discord_id.return_value = user_id
     mock_fetch_channel.return_value = post_mock
@@ -130,7 +130,7 @@ async def test_process_update_restored(
 ):
     state = asyncio.Queue()
     await state.put(SimpleProjectItemEvent("audacity4", "norbiros", SimpleProjectItemEventType.RESTORED))
-    mock_get_post_id.return_value = "621"
+    mock_get_post_id.return_value = 621
     user_id = 2137696742041
     mock_retrieve_discord_id.return_value = user_id
     mock_fetch_channel.return_value = post_mock
@@ -157,7 +157,7 @@ async def test_process_update_deleted(
 ):
     state = asyncio.Queue()
     await state.put(SimpleProjectItemEvent("audacity4", "norbiros", SimpleProjectItemEventType.DELETED))
-    mock_get_post_id.return_value = "621"
+    mock_get_post_id.return_value = 621
     mock_retrieve_discord_id.return_value = "niepodam@norbiros.dev"
     mock_fetch_channel.return_value = post_mock
 
@@ -180,7 +180,7 @@ async def test_process_update_assignees(
 ):
     state = asyncio.Queue()
     await state.put(ProjectItemEditedAssignees("audacity4", "norbiros", ["norbiros"]))
-    mock_get_post_id.return_value = "621"
+    mock_get_post_id.return_value = 621
     user_id = 2137696742041
     mock_retrieve_discord_id.return_value = user_id
     mock_fetch_channel.return_value = post_mock
@@ -206,7 +206,7 @@ async def test_process_update_body(
     state = asyncio.Queue()
     new_body = "Nowy opis taska"
     await state.put(ProjectItemEditedBody("audacity4", "norbiros", new_body))
-    mock_get_post_id.return_value = "621"
+    mock_get_post_id.return_value = 621
     user_id = 2137696742041
     mock_retrieve_discord_id.return_value = user_id
     mock_fetch_channel.return_value = post_mock
@@ -232,7 +232,7 @@ async def test_process_update_title(
     state = asyncio.Queue()
     new_title = "Nowy opis taska"
     await state.put(ProjectItemEditedTitle("audacity4", "norbiros", new_title))
-    mock_get_post_id.return_value = "621"
+    mock_get_post_id.return_value = 621
     user_id = 2137696742041
     mock_retrieve_discord_id.return_value = user_id
     mock_fetch_channel.return_value = post_mock
@@ -258,7 +258,7 @@ async def test_process_update_single_select(
 ):
     state = asyncio.Queue()
     await state.put(ProjectItemEditedSingleSelect("audacity4", "norbiros", "big", SingleSelectType.SIZE))
-    mock_get_post_id.return_value = "621"
+    mock_get_post_id.return_value = 621
     user_id = 2137696742041
     mock_retrieve_discord_id.return_value = user_id
     mock_fetch_channel.return_value = post_mock
@@ -287,7 +287,7 @@ async def test_process_update_single_select_tag_unavailable(
 ):
     state = asyncio.Queue()
     await state.put(ProjectItemEditedSingleSelect("audacity4", "norbiros", "big", SingleSelectType.SIZE))
-    mock_get_post_id.return_value = "621"
+    mock_get_post_id.return_value = 621
     user_id = 2137696742041
     mock_retrieve_discord_id.return_value = user_id
     mock_fetch_channel.return_value = post_mock

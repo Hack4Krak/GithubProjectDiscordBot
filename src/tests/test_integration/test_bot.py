@@ -69,6 +69,7 @@ async def test_basic_event_only_creation(
     mock_fetch_public_archived_threads.return_value = []
     mock_create_forum_post.return_value = None
     mock_shelve_open.return_value = MockShelf({})
+    mock_create_forum_post.return_value = "created_forum_post"
     update_queue = asyncio.Queue()
     await update_queue.put(ProjectItemEvent(name="Test Item", sender="test_sender"))
     await run(update_queue, stop_after_one_event=True)

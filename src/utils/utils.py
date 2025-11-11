@@ -5,7 +5,7 @@ import shelve
 
 import aiohttp
 import yaml
-from hikari import ForumTag, GuildForumChannel
+from hikari import ForumTag, GuildForumChannel, GuildThreadChannel
 from hikari.impl import RESTClientImpl
 
 
@@ -156,22 +156,21 @@ async def fetch_single_select_value(item_node_id: str | None, field_name: str | 
 
 async def get_post_id(
     name: str, discord_guild_id: int, forum_channel_id: int, rest_client: RESTClientImpl
-) -> int | None:
+) -> int | GuildThreadChannel | None:
     with shelve.open("post_id.db") as db:
         try:
             post_id: str = db[name]
             return int(post_id)
         except KeyError:
             pass
-        # todo: return post if found in active threads or in archived threads
         for thread in await rest_client.fetch_active_threads(discord_guild_id):
             if thread.name == name:
                 db[name] = thread.id
-                return thread.id
+                return thread
         for thread in await rest_client.fetch_public_archived_threads(forum_channel_id):
             if thread.name == name:
                 db[name] = thread.id
-                return thread.id
+                return thread
 
     return None
 

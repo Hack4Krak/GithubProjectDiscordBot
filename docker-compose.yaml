@@ -1,0 +1,11 @@
+services:
+  app:
+    container_name: app
+    build:
+        context: .
+        dockerfile: Dockerfile
+    restart: on-failure
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env

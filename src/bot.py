@@ -46,16 +46,17 @@ async def process_update(
     bot_info(f"Processing event for item: {event.name}")
     post_id = await get_post_id(event.name, discord_guild_id, forum_channel_id, client)
     author_discord_id = retrieve_discord_id(event.sender)
+    user_mentions = [author_discord_id] if author_discord_id else []
+    user_text_mention = f"<@{author_discord_id}>" if author_discord_id else "nieznany użytkownik"
     if post_id is None:
         bot_info(f"Post not found, creating new post for item: {event.name}")
-        # todo: Handle author_discord_id being None
-        message = f"Nowy task stworzony {event.name} przez <@{author_discord_id}>"
+        message = f"Nowy task stworzony {event.name} przez: {user_text_mention}.>"
         post: GuildPublicThread = await client.create_forum_post(
             forum_channel,
             event.name,
             message,
             auto_archive_duration=10080,
-            user_mentions=[author_discord_id],
+            user_mentions=user_mentions,
         )
     else:
         post = await client.fetch_channel(post_id)
@@ -66,18 +67,17 @@ async def process_update(
     if isinstance(event, SimpleProjectItemEvent):
         match event.event_type.value:
             case "archived":
-                message = f"Task zarchiwizowany przez <@{author_discord_id}>."
-                await client.create_message(post.id, message, user_mentions=[author_discord_id])
+                message = f"Task zarchiwizowany przez: {user_text_mention}."
                 await client.edit_channel(post.id, archived=True)
                 bot_info(f"Post {event.name} archived.")
             case "restored":
-                message = f"Task przywrócony przez <@{author_discord_id}>."
-                await client.create_message(post.id, message, user_mentions=[author_discord_id])
+                message = f"Task przywrócony przez: {user_text_mention}."
                 await client.edit_channel(post.id, archived=False)
                 bot_info(f"Post {event.name} restored.")
             case "deleted":
                 await client.delete_channel(post.id)
                 bot_info(f"Post {event.name} deleted.")
+                return
     elif isinstance(event, ProjectItemEditedAssignees):
         assignee_mentions: list[str] = []
         assignee_discord_ids: list[int] = []
@@ -93,13 +93,13 @@ async def process_update(
         message = f"Osoby przypisane do taska edytowane, aktualni przypisani: {', '.join(assignee_mentions)}"
         await client.create_message(post.id, message, user_mentions=assignee_discord_ids)
         bot_info(f"Post {event.name} assignees updated.")
+        return
     elif isinstance(event, ProjectItemEditedBody):
-        message = f"Opis taska zaktualizowany przez <@{author_discord_id}>. Nowy opis: \n{event.new_body}"
-        user_mentions = [author_discord_id] if author_discord_id else []
-        await client.create_message(post.id, message, user_mentions=user_mentions)
+        message = f"Opis taska zaktualizowany przez: {user_text_mention}. Nowy opis: \n{event.new_body}"
         bot_info(f"Post {event.name} body updated.")
     elif isinstance(event, ProjectItemEditedTitle):
         await client.edit_channel(post.id, name=event.new_title)
+        return
     elif isinstance(event, ProjectItemEditedSingleSelect):
         available_tags = list(forum_channel.available_tags)
         current_tag_ids = list(post.applied_tag_ids)
@@ -126,3 +126,8 @@ async def process_update(
 
         await client.edit_channel(post.id, applied_tags=current_tag_ids)
         bot_info(f"Post {event.name} label updated.")
+        return
+    else:
+        return
+
+    await client.create_message(post.id, message, user_mentions=user_mentions)

@@ -63,7 +63,7 @@ async def test_process_update_created_success(
     state = asyncio.Queue()
     await state.put(SimpleProjectItemEvent("mmmocking", "norbiros", SimpleProjectItemEventType.CREATED))
     mock_get_post_id.return_value = None
-    mock_retrieve_discord_id.return_value = "niepodam@norbiros.dev"
+    mock_retrieve_discord_id.return_value = 2137696742041
 
     await process_update(rest_client_mock, 1, 1, forum_channel_mock, state)
     assert mock_create_forum_post.called
@@ -78,7 +78,7 @@ async def test_process_update_already_exists(
     state = asyncio.Queue()
     await state.put(SimpleProjectItemEvent("mmmocking", "norbiros", SimpleProjectItemEventType.CREATED))
     mock_get_post_id.return_value = "1"
-    mock_retrieve_discord_id.return_value = "niepodam@norbiros.dev"
+    mock_retrieve_discord_id.return_value = "2137696742041"
 
     await process_update(rest_client_mock, 1, 1, forum_channel_mock, state)
     assert mock_fetch_channel.called
@@ -93,7 +93,7 @@ async def test_process_update_archived(
     mock_get_post_id,
     mock_retrieve_discord_id,
     mock_fetch_channel,
-    _mock_create_message,
+    mock_create_message,
     mock_edit_channel,
     forum_channel_mock,
     rest_client_mock,
@@ -102,10 +102,14 @@ async def test_process_update_archived(
     state = asyncio.Queue()
     await state.put(SimpleProjectItemEvent("audacity4", "norbiros", SimpleProjectItemEventType.ARCHIVED))
     mock_get_post_id.return_value = "621"
-    mock_retrieve_discord_id.return_value = "niepodam@norbiros.dev"
+    user_id = 2137696742041
+    mock_retrieve_discord_id.return_value = user_id
     mock_fetch_channel.return_value = post_mock
 
     await process_update(rest_client_mock, 1, 1, forum_channel_mock, state)
+    mock_create_message.assert_called_with(
+        post_mock.id, f"Task zarchiwizowany przez: <@{user_id}>.", user_mentions=[user_id]
+    )
     mock_edit_channel.assert_called_with(post_mock.id, archived=True)
 
 
@@ -118,7 +122,7 @@ async def test_process_update_restored(
     mock_get_post_id,
     mock_retrieve_discord_id,
     mock_fetch_channel,
-    _mock_create_message,
+    mock_create_message,
     mock_edit_channel,
     forum_channel_mock,
     rest_client_mock,
@@ -127,10 +131,14 @@ async def test_process_update_restored(
     state = asyncio.Queue()
     await state.put(SimpleProjectItemEvent("audacity4", "norbiros", SimpleProjectItemEventType.RESTORED))
     mock_get_post_id.return_value = "621"
-    mock_retrieve_discord_id.return_value = "niepodam@norbiros.dev"
+    user_id = 2137696742041
+    mock_retrieve_discord_id.return_value = user_id
     mock_fetch_channel.return_value = post_mock
 
     await process_update(rest_client_mock, 1, 1, forum_channel_mock, state)
+    mock_create_message.assert_called_with(
+        post_mock.id, f"Task przywrócony przez: <@{user_id}>.", user_mentions=[user_id]
+    )
     mock_edit_channel.assert_called_with(post_mock.id, archived=False)
 
 
@@ -202,7 +210,7 @@ async def test_process_update_body(
     user_id = 2137696742041
     mock_retrieve_discord_id.return_value = user_id
     mock_fetch_channel.return_value = post_mock
-    message = f"Opis taska zaktualizowany przez <@{user_id}>. Nowy opis: \n{new_body}"
+    message = f"Opis taska zaktualizowany przez: <@{user_id}>. Nowy opis: \n{new_body}"
 
     await process_update(rest_client_mock, 1, 1, forum_channel_mock, state)
     mock_create_message.assert_called_with(post_mock.id, message, user_mentions=[user_id])

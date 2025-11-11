@@ -82,7 +82,7 @@ async def test_e2e(
         pytest.fail("Expected log 'body updated' not found in output")
     assert post_id_shelf.get("audacity4") == 621
     mock_create_message.assert_called_with(
-        621, "Opis taska zaktualizowany przez <@None>. Nowy opis: \nUpdated description", user_mentions=[]
+        621, "Opis taska zaktualizowany przez: nieznany użytkownik. Nowy opis: \nUpdated description", user_mentions=[]
     )
 
     server.should_exit = True

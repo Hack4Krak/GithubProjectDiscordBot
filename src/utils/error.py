@@ -1,0 +1,2 @@
+class ForumChannelNotFound(SystemExit):
+    pass

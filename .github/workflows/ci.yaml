@@ -1,0 +1,41 @@
+name: CI
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/ci.yaml
+      - pyproject.toml
+      - uv.lock
+      - src/**
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/ci.yaml
+      - pyproject.toml
+      - uv.lock
+      - src/**
+  workflow_dispatch:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Set up Python
+        run: uv python install
+
+      - name: Install all dependencies
+        run: uv sync --all-groups
+
+      - name: Run Tests
+        run: uv run pytest
+
+      - name: Run Lint
+        run: uv run ruff check
+
+      - name: Run Formatter
+        run: uv run ruff format --check

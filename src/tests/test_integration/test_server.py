@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 
 from src.server import app
 from src.tests.test_unit.test_utils import MockResponse, MockShelf
-from src.utils.utils import generate_signature
+from src.utils import generate_signature
 
 test_client = TestClient(app)
 

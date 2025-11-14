@@ -15,7 +15,8 @@ from hikari import (
 )
 from hikari.impl import EntityFactoryImpl, HTTPSettings, ProxySettings, RESTClientImpl
 
-from src.utils import utils
+from src import utils
+from src.utils import discord_rest_client, github_api
 
 
 class MockShelf(dict):
@@ -95,7 +96,7 @@ async def test_get_item_name_exist_in_db(mock_shelve_open):
 
 
 @patch("shelve.open")
-@patch("src.utils.utils.fetch_item_name")
+@patch("src.utils.fetch_item_name", new_callable=AsyncMock)
 async def test_get_item_name_doesnt_exist_in_db(mock_fetch_item_name, mock_shelve_open):
     mock_shelf = MockShelf({})
     mock_shelve_open.return_value = mock_shelf
@@ -131,14 +132,14 @@ async def test_fetch_assignees_success(mock_post_request):
     }
     mock_post_request.return_value = MockResponse(mock_response)
 
-    assert await utils.fetch_assignees("<node_id>") == ["MDQ6VXNlcjg4MjY4MDYz", "MDQ6VXNlcjg5ODM3NzI0"]
+    assert await github_api.fetch_assignees("<node_id>") == ["MDQ6VXNlcjg4MjY4MDYz", "MDQ6VXNlcjg5ODM3NzI0"]
 
 
 @patch.object(ClientSession, "post")
 async def test_fetch_assignees_none(mock_post_request):
     mock_post_request.return_value = MockResponse({})
 
-    assert await utils.fetch_assignees("<node_id>") == []
+    assert await github_api.fetch_assignees("<node_id>") == []
 
 
 @patch.object(ClientSession, "post")
@@ -146,7 +147,7 @@ async def test_fetch_single_select_value_success(mock_post_request):
     mock_response = {"data": {"node": {"fieldValueByName": {"name": "Dziengiel"}}}}
     mock_post_request.return_value = MockResponse(mock_response)
 
-    assert await utils.fetch_single_select_value("<node_id>", "Salieri") == "Dziengiel"
+    assert await github_api.fetch_single_select_value("<node_id>", "Salieri") == "Dziengiel"
 
 
 @patch.object(ClientSession, "post")
@@ -154,7 +155,7 @@ async def test_fetch_single_select_value_none(mock_post_request):
     mock_response = {}
     mock_post_request.return_value = MockResponse(mock_response)
 
-    assert await utils.fetch_single_select_value("<node_id>", "Salieri") is None
+    assert await github_api.fetch_single_select_value("<node_id>", "Salieri") is None
 
 
 @patch("shelve.open")
@@ -162,7 +163,7 @@ async def test_get_post_id_exist_in_db(mock_shelve_open, rest_client_mock):
     mock_db = {"audacity4": 621}
     mock_shelve_open.return_value = MockShelf(mock_db)
 
-    assert await utils.get_post_id("audacity4", 1, 1, rest_client_mock) == 621
+    assert await discord_rest_client.get_post_id("audacity4", 1, 1, rest_client_mock) == 621
 
 
 @patch.object(RESTClientImpl, "fetch_active_threads", new_callable=AsyncMock)
@@ -172,7 +173,7 @@ async def test_get_post_id_active_thread(mock_shelve_open, mock_fetch_active_thr
     mock_shelve_open.return_value = mock_shelf
     mock_fetch_active_threads.return_value = [post_mock]
 
-    assert await utils.get_post_id("audacity4", 1, 1, rest_client_mock) == post_mock
+    assert await discord_rest_client.get_post_id("audacity4", 1, 1, rest_client_mock) == post_mock
     assert mock_shelf.get("audacity4") == 621
 
 
@@ -187,7 +188,7 @@ async def test_get_post_id_archived_thread(
     mock_fetch_active_threads.return_value = []
     mock_fetch_public_archived_threads.return_value = [post_mock]
 
-    assert await utils.get_post_id("audacity4", 1, 1, rest_client_mock) == post_mock
+    assert await discord_rest_client.get_post_id("audacity4", 1, 1, rest_client_mock) == post_mock
     assert mock_shelf.get("audacity4") == 621
 
 
@@ -208,35 +209,35 @@ def test_retrieve_discord_id_absent_id(_mock_open_file):
 async def test_fetch_forum_channel_success(mock_fetch_channel, rest_client_mock, forum_channel_mock):
     mock_fetch_channel.return_value = forum_channel_mock
 
-    assert await utils.fetch_forum_channel(rest_client_mock, 67) == forum_channel_mock
+    assert await discord_rest_client.fetch_forum_channel(rest_client_mock, 67) == forum_channel_mock
 
 
 @patch.object(RESTClientImpl, "fetch_channel", new_callable=AsyncMock)
 async def test_fetch_forum_channel_none(mock_fetch_channel, rest_client_mock):
     mock_fetch_channel.return_value = None
 
-    assert await utils.fetch_forum_channel(rest_client_mock, 67) is None
+    assert await discord_rest_client.fetch_forum_channel(rest_client_mock, 67) is None
 
 
 @patch.object(RESTClientImpl, "fetch_channel", new_callable=AsyncMock)
 async def test_fetch_forum_channel_not_forum_channel(mock_fetch_channel, rest_client_mock, post_mock):
     mock_fetch_channel.return_value = post_mock
 
-    assert await utils.fetch_forum_channel(rest_client_mock, 67) is None
+    assert await discord_rest_client.fetch_forum_channel(rest_client_mock, 67) is None
 
 
 def test_get_new_tag_success():
     tag1 = ForumTag(id=Snowflake(1), name="enchantment", moderated=False)
     available_tags = [tag1]
 
-    assert utils.get_new_tag("enchantment", available_tags) == tag1
+    assert discord_rest_client.get_new_tag("enchantment", available_tags) == tag1
 
 
 def test_get_new_tag_none():
     tag1 = ForumTag(id=Snowflake(1), name="enchantment", moderated=False)
     available_tags = [tag1]
 
-    assert utils.get_new_tag("build", available_tags) is None
+    assert discord_rest_client.get_new_tag("build", available_tags) is None
 
 
 def test_generate_signature():

@@ -13,7 +13,7 @@ from src.server import app
 from src.tests.test_integration.test_bot import RestClientContextManagerMock
 from src.tests.test_unit.test_bot import post_mock  # noqa: F401
 from src.tests.test_unit.test_utils import MockShelf, forum_channel_mock, rest_client_mock  # noqa: F401
-from src.utils.utils import generate_signature
+from src.utils import generate_signature
 
 
 @patch.object(RESTClientImpl, "create_message", new_callable=AsyncMock)

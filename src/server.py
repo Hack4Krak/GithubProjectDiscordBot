@@ -8,6 +8,7 @@ from fastapi import FastAPI, Request
 from starlette.responses import JSONResponse
 
 from src.bot import run
+from src.utils import get_item_name, verify_secret
 from src.utils.data_types import (
     ProjectItemEdited,
     ProjectItemEditedAssignees,
@@ -19,8 +20,8 @@ from src.utils.data_types import (
     simple_project_item_from_action_type,
     single_select_type_from_field_name,
 )
+from src.utils.github_api import fetch_assignees, fetch_item_name, fetch_single_select_value
 from src.utils.logging import server_error, server_info, server_warning
-from src.utils.utils import fetch_assignees, fetch_item_name, fetch_single_select_value, get_item_name, verify_secret
 
 update_queue: asyncio.Queue[ProjectItemEvent] = asyncio.Queue()
 

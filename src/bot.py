@@ -4,6 +4,7 @@ import os
 from hikari import ForumTag, GuildForumChannel, GuildPublicThread, RESTApp, TokenType
 from hikari.impl import RESTClientImpl
 
+from src.utils import retrieve_discord_id
 from src.utils.data_types import (
     ProjectItemEditedAssignees,
     ProjectItemEditedBody,
@@ -12,9 +13,9 @@ from src.utils.data_types import (
     ProjectItemEvent,
     SimpleProjectItemEvent,
 )
+from src.utils.discord_rest_client import fetch_forum_channel, get_new_tag, get_post_id
 from src.utils.error import ForumChannelNotFound
 from src.utils.logging import bot_error, bot_info
-from src.utils.utils import fetch_forum_channel, get_new_tag, get_post_id, retrieve_discord_id
 
 
 async def run(state: asyncio.Queue[ProjectItemEvent], stop_after_one_event: bool = False):

@@ -39,7 +39,7 @@ async def fetch_item_name(item_node_id: str | None) -> str | None:
 
     try:
         item_name: str | None = response_body["data"]["node"]["content"]["title"]
-    except (KeyError, AttributeError):
+    except KeyError, AttributeError:
         return None
 
     return item_name
@@ -92,7 +92,7 @@ async def fetch_assignees(item_node_id: str | None) -> list[str]:
             response_body = await response.json()
     try:
         assignees_data = response_body["data"]["node"]["content"]["assignees"]["nodes"]
-    except (KeyError, AttributeError):
+    except KeyError, AttributeError:
         return []
     assignees = [assignee.get("id", None) for assignee in assignees_data]
 
@@ -129,7 +129,7 @@ async def fetch_single_select_value(item_node_id: str | None, field_name: str | 
 
     try:
         name: str | None = response_body["data"]["node"]["fieldValueByName"]["name"]
-    except (KeyError, AttributeError):
+    except KeyError, AttributeError:
         return None
 
     return name

@@ -1,19 +1,9 @@
 name: CI
 on:
   push:
-    branches: [main]
-    paths:
-      - .github/workflows/ci.yaml
-      - pyproject.toml
-      - uv.lock
-      - src/**
+    branches: [master]
   pull_request:
-    branches: [main]
-    paths:
-      - .github/workflows/ci.yaml
-      - pyproject.toml
-      - uv.lock
-      - src/**
+    branches: [master]
   workflow_dispatch:
 
 jobs:

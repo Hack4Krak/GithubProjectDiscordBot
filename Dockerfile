@@ -4,7 +4,7 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 ADD . /app
 
 WORKDIR /app
-RUN uv sync --locked
+RUN uv sync --locked --no-default-groups --group prod --compile-bytecode
 
 EXPOSE $PORT
 CMD exec .venv/bin/gunicorn src.server:app \

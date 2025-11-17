@@ -7,4 +7,4 @@ WORKDIR /app
 RUN uv sync --locked
 
 EXPOSE 8000
-CMD ".venv/bin/start-app"
+CMD [".venv/bin/start-app"]

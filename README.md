@@ -34,7 +34,7 @@ uv run pytest
 
 For deployment follow these steps:
 - set all environment variables accordingly,
-- update your `github_id_to_discord_id_mapping.json`,
+- setup file_mount for `github_id_to_discord_id_mapping.json` on `/app/github_usernames_to_discord_id_mapping.json`,
 - set up a webhook in your GitHub repository to point to your server's `/webhook_endpoint` endpoint,
 - use Dockerfile to build the image.
 

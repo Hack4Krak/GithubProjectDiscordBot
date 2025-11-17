@@ -9,3 +9,8 @@ services:
       - "8000:8000"
     env_file:
       - .env
+    volumes:
+      - github_id_to_discord_id_mapping:/app/github_id_to_discord_id_mapping.yaml
+
+volumes:
+  github_id_to_discord_id_mapping:

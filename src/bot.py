@@ -31,7 +31,10 @@ async def run(state: asyncio.Queue[ProjectItemEvent], stop_after_one_event: bool
             raise ForumChannelNotFound(f"Forum channel with ID {forum_channel_id} not found.")
 
         while True:
-            await process_update(client, forum_channel_id, discord_guild_id, forum_channel, state)
+            try:
+                await process_update(client, forum_channel_id, discord_guild_id, forum_channel, state)
+            except Exception as error:
+                bot_error(f"Error processing update: {error}")
             if stop_after_one_event:
                 break
 

@@ -21,7 +21,7 @@ from src.utils.data_types import (
     single_select_type_from_field_name,
 )
 from src.utils.github_api import fetch_assignees, fetch_item_name, fetch_single_select_value
-from src.utils.logging import server_error, server_info, server_warning
+from src.utils.logging import bot_error, server_error, server_info, server_warning
 
 update_queue: asyncio.Queue[ProjectItemEvent] = asyncio.Queue()
 
@@ -30,6 +30,7 @@ update_queue: asyncio.Queue[ProjectItemEvent] = asyncio.Queue()
 async def lifespan(app: FastAPI):
     # startup
     task = asyncio.create_task(run(update_queue))
+    task.add_done_callback(handle_task_exception)
     yield
     # shutdown
     task.cancel()
@@ -37,6 +38,16 @@ async def lifespan(app: FastAPI):
         await task
     except asyncio.CancelledError:
         pass
+
+
+def handle_task_exception(task: asyncio.Task):
+    try:
+        exception = task.exception()
+    except asyncio.CancelledError:
+        return
+
+    if exception:
+        bot_error(f"Bot task crashed: {exception}")
 
 
 app = FastAPI(lifespan=lifespan)

@@ -56,7 +56,7 @@ async def process_update(
     user_text_mention = f"<@{author_discord_id}>" if author_discord_id else "nieznany użytkownik"
     if post_id_or_post is None:
         bot_info(f"Post not found, creating new post for item: {event.name}")
-        message = f"Nowy task stworzony {event.name} przez: {user_text_mention}.>"
+        message = f"Nowy task stworzony {event.name} przez: {user_text_mention}"
         post: GuildPublicThread = await client.create_forum_post(
             forum_channel,
             event.name,

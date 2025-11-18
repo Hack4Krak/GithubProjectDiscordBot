@@ -32,7 +32,9 @@ async def run(state: asyncio.Queue[ProjectItemEvent], stop_after_one_event: bool
 
         while True:
             try:
-                await process_update(client, forum_channel_id, discord_guild_id, forum_channel, state)
+                return_value = await process_update(client, forum_channel_id, discord_guild_id, forum_channel, state)
+                if return_value is not None:
+                    forum_channel = return_value
             except Exception as error:
                 bot_error(f"Error processing update: {error}")
             if stop_after_one_event:
@@ -45,7 +47,7 @@ async def process_update(
     discord_guild_id: int,
     forum_channel: GuildForumChannel,
     state: asyncio.Queue[ProjectItemEvent],
-):
+) -> GuildForumChannel | None:
     event = await state.get()
     bot_info(f"Processing event for item: {event.name}")
     post_id_or_post = await get_post_id(event.name, discord_guild_id, forum_channel_id, client)
@@ -72,7 +74,7 @@ async def process_update(
             bot_error(f"Post with ID {post.id} is not a GuildPublicThread.")
         except AttributeError:
             bot_error(f"Post with ID {post_id_or_post} is not a Discord channel object.")
-        return
+        return None
 
     if isinstance(event, SimpleProjectItemEvent):
         match event.event_type.value:
@@ -87,7 +89,7 @@ async def process_update(
             case "deleted":
                 await client.delete_channel(post.id)
                 bot_info(f"Post {event.name} deleted.")
-                return
+                return None
     elif isinstance(event, ProjectItemEditedAssignees):
         assignee_mentions: list[str] = []
         assignee_discord_ids: list[int] = []
@@ -103,13 +105,13 @@ async def process_update(
         message = f"Osoby przypisane do taska edytowane, aktualni przypisani: {', '.join(assignee_mentions)}"
         await client.create_message(post.id, message, user_mentions=assignee_discord_ids)
         bot_info(f"Post {event.name} assignees updated.")
-        return
+        return None
     elif isinstance(event, ProjectItemEditedBody):
         message = f"Opis taska zaktualizowany przez: {user_text_mention}. Nowy opis: \n{event.new_body}"
         bot_info(f"Post {event.name} body updated.")
     elif isinstance(event, ProjectItemEditedTitle):
         await client.edit_channel(post.id, name=event.new_title)
-        return
+        return None
     elif isinstance(event, ProjectItemEditedSingleSelect):
         available_tags = list(forum_channel.available_tags)
         current_tag_ids = list(post.applied_tag_ids)
@@ -123,9 +125,7 @@ async def process_update(
 
         if new_tag is None:
             bot_info(f"Tag {new_tag_name} not found, creating new tag.")
-            new_tag = ForumTag(name=new_tag_name)
-            available_tags.append(new_tag)
-            await client.edit_channel(forum_channel.id, available_tags=available_tags)
+            await client.edit_channel(forum_channel.id, available_tags=[*available_tags, ForumTag(name=new_tag_name)])
             forum_channel = await fetch_forum_channel(client, forum_channel_id)
             if forum_channel is None:
                 raise ForumChannelNotFound(f"Forum channel with ID {forum_channel_id} not found.")
@@ -136,8 +136,10 @@ async def process_update(
 
         await client.edit_channel(post.id, applied_tags=current_tag_ids)
         bot_info(f"Post {event.name} label updated.")
-        return
+        return forum_channel
     else:
-        return
+        return None
 
     await client.create_message(post.id, message, user_mentions=user_mentions)
+
+    return None

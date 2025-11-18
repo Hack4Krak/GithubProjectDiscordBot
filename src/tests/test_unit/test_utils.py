@@ -115,6 +115,14 @@ async def test_fetch_item_name_success(mock_post_request):
 
 
 @patch.object(ClientSession, "post")
+async def test_fetch_item_name_partial(mock_post_request):
+    mock_response = {"data": {"node": {"content": None}}}
+    mock_post_request.return_value = MockResponse(mock_response)
+
+    assert await utils.fetch_item_name("<node_id>") is None
+
+
+@patch.object(ClientSession, "post")
 async def test_fetch_item_name_none(mock_post_request):
     mock_post_request.return_value = MockResponse({})
 
@@ -136,6 +144,14 @@ async def test_fetch_assignees_success(mock_post_request):
 
 
 @patch.object(ClientSession, "post")
+async def test_fetch_assignees_partial(mock_post_request):
+    mock_response = {"data": {"node": {"content": None}}}
+    mock_post_request.return_value = MockResponse(mock_response)
+
+    assert await github_api.fetch_assignees("<node_id>") == []
+
+
+@patch.object(ClientSession, "post")
 async def test_fetch_assignees_none(mock_post_request):
     mock_post_request.return_value = MockResponse({})
 
@@ -148,6 +164,14 @@ async def test_fetch_single_select_value_success(mock_post_request):
     mock_post_request.return_value = MockResponse(mock_response)
 
     assert await github_api.fetch_single_select_value("<node_id>", "Salieri") == "Dziengiel"
+
+
+@patch.object(ClientSession, "post")
+async def test_fetch_single_select_value_partial(mock_post_request):
+    mock_response = {"data": {"node": {"fieldValueByName": None}}}
+    mock_post_request.return_value = MockResponse(mock_response)
+
+    assert await github_api.fetch_single_select_value("<node_id>", "Salieri") is None
 
 
 @patch.object(ClientSession, "post")

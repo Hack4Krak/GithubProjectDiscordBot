@@ -18,21 +18,19 @@ from src.utils.data_types import (
     ProjectItemEditedBody,
     ProjectItemEditedSingleSelect,
     ProjectItemEditedTitle,
-    ProjectItemEvent,
     SingleSelectType,
     simple_project_item_from_action_type,
     single_select_type_from_field_name,
 )
 from src.utils.github_api import fetch_assignees, fetch_item_name, fetch_single_select_value
 
-update_queue: asyncio.Queue[ProjectItemEvent] = asyncio.Queue()
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # startup
+    app.update_queue = asyncio.Queue()
     app.logger = logging.getLogger("uvicorn.error")
-    task = asyncio.create_task(run(update_queue, app.logger))
+    task = asyncio.create_task(run(app.update_queue, app.logger))
     task.add_done_callback(handle_task_exception)
     yield
     # shutdown
@@ -109,7 +107,7 @@ async def webhook_endpoint(request: Request) -> JSONResponse:
     else:
         raise HTTPException(status_code=400, detail="Missing action in payload.")
 
-    await update_queue.put(project_item_event)
+    await app.update_queue.put(project_item_event)
 
     app.logger.info(f"Received webhook event for item: {item_name}")
     return JSONResponse(content={"detail": "Successfully received webhook data"})

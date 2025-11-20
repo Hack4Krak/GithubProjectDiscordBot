@@ -10,7 +10,7 @@ services:
     env_file:
       - .env
     volumes:
-      - github_id_to_discord_id_mapping:/app/github_id_to_discord_id_mapping.yaml
+      - github_id_to_discord_id_mapping:/app/${GITHUB_ID_TO_DISCORD_ID_MAPPING_PATH}
 
 volumes:
   github_id_to_discord_id_mapping:

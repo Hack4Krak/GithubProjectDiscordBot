@@ -1,3 +1,4 @@
+import os
 import shelve
 
 from hikari import ForumTag, GuildForumChannel, GuildThreadChannel
@@ -19,7 +20,7 @@ def get_new_tag(new_tag_name: str, available_tags: list[ForumTag]) -> ForumTag |
 async def get_post_id(
     name: str, discord_guild_id: int, forum_channel_id: int, rest_client: RESTClientImpl
 ) -> int | GuildThreadChannel | None:
-    with shelve.open("post_id.db") as db:
+    with shelve.open(os.getenv("POST_ID_DB_PATH", "post_id.db")) as db:
         try:
             post_id: str = db[name]
             return int(post_id)

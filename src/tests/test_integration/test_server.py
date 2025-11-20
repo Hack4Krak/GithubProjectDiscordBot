@@ -114,7 +114,7 @@ def test_missing_item_node_id(mock_os_getenv):
 @patch("shelve.open")
 @patch("os.getenv")
 def test_could_not_fetch_item_name(mock_os_getenv, mock_shelve_open, mock_post_request):
-    mock_os_getenv.side_effect = ["some_secret", 123, "some_token"]
+    mock_os_getenv.side_effect = ["some_secret", 123, "some_token", "db-path.db"]
     mock_shelve_open.return_value = MockShelf({})
     mock_post_request.return_value = MockResponse({})
     signature = generate_signature("some_secret", b'{"projects_v2_item": {"project_node_id": 123, "node_id": "123"}}')
@@ -130,7 +130,7 @@ def test_could_not_fetch_item_name(mock_os_getenv, mock_shelve_open, mock_post_r
 @patch("shelve.open")
 @patch("os.getenv")
 def test_missing_action(mock_os_getenv, mock_shelve_open):
-    mock_os_getenv.side_effect = ["some_secret", 123]
+    mock_os_getenv.side_effect = ["some_secret", 123, "db-path.db"]
     mock_shelve_open.return_value = MockShelf({"123": "Meow"})
     signature = generate_signature("some_secret", b'{"projects_v2_item": {"project_node_id": 123, "node_id": "123"}}')
     response = test_client.post(
@@ -152,7 +152,7 @@ def test_edited_action(mock_os_getenv, mock_shelve_open, mock_post_request):
         "changes": {"field_value": {"field_type": "title"}},
     }
     payload: str = json.dumps(payload)
-    mock_os_getenv.side_effect = ["some_secret", 123, "some_token"]
+    mock_os_getenv.side_effect = ["some_secret", 123, "some_token", "db-path.db"]
     mock_shelve_open.return_value = MockShelf({"123": "Meow"})
     mock_post_request.return_value = MockResponse({"data": {"node": {"content": {"title": "Meow"}}}})
     signature = generate_signature(

@@ -1,4 +1,5 @@
 import json
+import logging
 from typing import Any
 from unittest.mock import patch
 
@@ -10,6 +11,7 @@ from src.tests.test_unit.test_utils import MockResponse, MockShelf
 from src.utils import generate_signature
 
 test_client = TestClient(app)
+test_client.app.logger = logging.getLogger("uvicorn.error")
 
 
 def test_missing_body():
@@ -27,7 +29,7 @@ def test_invalid_signature(mock_os_getenv):
     )
 
     assert response.status_code == 401
-    assert response.json() == {"detail": "Invalid signature"}
+    assert response.json() == {"detail": "Invalid signature."}
 
 
 @patch("os.getenv")
@@ -40,7 +42,7 @@ def test_missing_signature(mock_os_getenv):
     )
 
     assert response.status_code == 401
-    assert response.json() == {"detail": "Missing signature"}
+    assert response.json() == {"detail": "Missing signature."}
 
 
 @patch("os.getenv")
@@ -53,7 +55,7 @@ def test_invalid_json(mock_os_getenv):
         headers={"X-Hub-Signature-256": signature},
     )
     assert response.status_code == 400
-    assert response.json() == {"detail": "Invalid JSON data."}
+    assert response.json() == {"detail": "Invalid JSON payload."}
 
 
 @patch("os.getenv")
@@ -66,7 +68,7 @@ def test_missing_projects_v2_item(mock_os_getenv):
         headers={"X-Hub-Signature-256": signature},
     )
     assert response.status_code == 400
-    assert response.json() == {"detail": "Missing projects_v2_item in payload."}
+    assert response.json() == {"detail": "Missing property in body: 'projects_v2_item'"}
 
 
 @patch("os.getenv")
@@ -79,7 +81,7 @@ def test_missing_project_node_id(mock_os_getenv):
         headers={"X-Hub-Signature-256": signature},
     )
     assert response.status_code == 400
-    assert response.json() == {"detail": "Invalid project_node_id."}
+    assert response.json() == {"detail": "Missing property in body: 'project_node_id'"}
 
 
 @patch("os.getenv")
@@ -105,7 +107,7 @@ def test_missing_item_node_id(mock_os_getenv):
         headers={"X-Hub-Signature-256": signature},
     )
     assert response.status_code == 400
-    assert response.json() == {"detail": "Missing item_node_id in payload."}
+    assert response.json() == {"detail": "Missing property in body: 'node_id'"}
 
 
 @patch.object(ClientSession, "post")
@@ -152,7 +154,7 @@ def test_edited_action(mock_os_getenv, mock_shelve_open, mock_post_request):
     payload: str = json.dumps(payload)
     mock_os_getenv.side_effect = ["some_secret", 123, "some_token"]
     mock_shelve_open.return_value = MockShelf({"123": "Meow"})
-    mock_post_request.return_value = MockResponse({})
+    mock_post_request.return_value = MockResponse({"data": {"node": {"content": {"title": "Meow"}}}})
     signature = generate_signature(
         "some_secret",
         payload.encode("utf-8"),

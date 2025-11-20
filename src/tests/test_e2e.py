@@ -1,6 +1,7 @@
 # ruff: noqa: F811
 import asyncio
 import json
+from logging import Logger
 from unittest.mock import AsyncMock, mock_open, patch
 
 import aiohttp
@@ -16,6 +17,7 @@ from src.tests.test_unit.test_utils import MockShelf, forum_channel_mock, rest_c
 from src.utils import generate_signature
 
 
+@patch.object(Logger, "info")
 @patch.object(RESTClientImpl, "create_message", new_callable=AsyncMock)
 @patch("builtins.open", new_callable=mock_open, read_data="")
 @patch.object(RESTClientImpl, "fetch_active_threads", new_callable=AsyncMock)
@@ -33,10 +35,10 @@ async def test_e2e(
     mock_fetch_active_threads,
     _mock_open,
     mock_create_message,
+    mock_logger,
     rest_client_mock,
     forum_channel_mock,
     post_mock,
-    capfd,
 ):
     mock_restapp_acquire.return_value = RestClientContextManagerMock(rest_client_mock)
     mock_fetch_channel.side_effect = [forum_channel_mock, post_mock]
@@ -74,9 +76,11 @@ async def test_e2e(
     assert resp.status == 200
 
     for _ in range(500):  # up to ~5 seconds total
-        out, _ = capfd.readouterr()
-        if "body updated" in out:
+        try:
+            mock_logger.assert_any_call("[BOT] Post audacity4 body updated.")
             break
+        except AssertionError:
+            pass
         await asyncio.sleep(0.01)
     else:
         pytest.fail("Expected log 'body updated' not found in output")

@@ -1,5 +1,8 @@
 from unittest.mock import patch
 
+import pytest
+from fastapi import HTTPException
+
 from src.server import process_edition
 from src.utils.data_types import (
     ProjectItemEditedAssignees,
@@ -22,12 +25,15 @@ async def test_process_edition_body_no_changes():
     body = {}
     item_name = "Idk"
 
-    assert await process_edition(body, item_name) is None
+    with pytest.raises(HTTPException) as exception:
+        await process_edition(body, item_name)
+    assert exception.value.status_code == 400
+    assert exception.value.detail == "Failed to recognize the edited event."
 
 
 @patch("src.server.fetch_assignees")
 async def test_process_edition_assignees_changed(mock_fetch_assignees):
-    body = {"changes": {"field_value": {"field_type": "assignees"}}}
+    body = {"changes": {"field_value": {"field_type": "assignees"}}, "projects_v2_item": {"node_id": "node_id"}}
     item_name = "YouKnowIntegrationTestsAreNextDontYou?"
     new_assignees = ["Kubaryt", "Salieri", "Aniela"]
     mock_fetch_assignees.return_value = new_assignees
@@ -38,7 +44,7 @@ async def test_process_edition_assignees_changed(mock_fetch_assignees):
 
 @patch("src.server.fetch_item_name")
 async def test_process_edition_title_changed(mock_fetch_item_name):
-    body = {"changes": {"field_value": {"field_type": "title"}}}
+    body = {"changes": {"field_value": {"field_type": "title"}}, "projects_v2_item": {"node_id": "node_id"}}
     item_name = "ImagineMockingDiscordSoMuchFun"
     new_item_name = "ActuallyNotFunAtAll"
     mock_fetch_item_name.return_value = new_item_name
@@ -51,7 +57,8 @@ async def test_process_edition_single_select_changed():
     body = {
         "changes": {
             "field_value": {"field_type": "single_select", "field_name": "Size", "to": {"name": "Smol like lil kitten"}}
-        }
+        },
+        "projects_v2_item": {"node_id": "node_id"},
     }
     item_name = "Lil puppy"
     expected_object = ProjectItemEditedSingleSelect(item_name, "Unknown", "Smol like lil kitten", SingleSelectType.SIZE)
@@ -61,7 +68,10 @@ async def test_process_edition_single_select_changed():
 
 async def test_process_edition_iteration_changed():
     new_title = "1.0.0 - FinallyWeShipItAfter25Years"
-    body = {"changes": {"field_value": {"field_type": "iteration", "to": {"title": new_title}}}}
+    body = {
+        "changes": {"field_value": {"field_type": "iteration", "to": {"title": new_title}}},
+        "projects_v2_item": {"node_id": "node_id"},
+    }
     item_name = "Create Dockerfile for production"
     expected_object = ProjectItemEditedSingleSelect(item_name, "Unknown", new_title, SingleSelectType.ITERATION)
 

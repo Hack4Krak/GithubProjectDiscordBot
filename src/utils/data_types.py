@@ -17,7 +17,7 @@ class SingleSelectType(Enum):
     SECTION = "Section"
 
 
-def single_select_type_from_field_name(field_name: str | None) -> SingleSelectType | None:
+def single_select_type_from_field_name(field_name: str) -> SingleSelectType | None:
     match field_name:
         case "Status":
             return SingleSelectType.STATUS

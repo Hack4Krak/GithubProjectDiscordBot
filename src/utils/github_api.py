@@ -1,12 +1,10 @@
 import os
 
 import aiohttp
+from fastapi import HTTPException
 
 
-async def fetch_item_name(item_node_id: str | None) -> str | None:
-    if item_node_id is None:
-        return None
-
+async def fetch_item_name(item_node_id: str) -> str:
     query = """
     query ($id: ID!) {
       node(id: $id) {
@@ -40,15 +38,12 @@ async def fetch_item_name(item_node_id: str | None) -> str | None:
     try:
         item_name: str | None = response_body["data"]["node"]["content"]["title"]
     except TypeError, KeyError, AttributeError:
-        return None
+        raise HTTPException(status_code=500, detail="Could not fetch item name.") from None
 
     return item_name
 
 
-async def fetch_assignees(item_node_id: str | None) -> list[str]:
-    if item_node_id is None:
-        return []
-
+async def fetch_assignees(item_node_id: str) -> list[str]:
     query = """
     query ($id: ID!) {
       node(id: $id) {
@@ -99,8 +94,8 @@ async def fetch_assignees(item_node_id: str | None) -> list[str]:
     return assignees
 
 
-async def fetch_single_select_value(item_node_id: str | None, field_name: str | None) -> str | None:
-    if item_node_id is None or field_name is None:
+async def fetch_single_select_value(item_node_id: str, field_name: str) -> str | None:
+    if field_name is None:
         return None
 
     query = """

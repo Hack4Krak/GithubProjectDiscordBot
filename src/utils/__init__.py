@@ -14,8 +14,6 @@ async def get_item_name(item_node_id: str) -> str | None:
             item_name: str = db[item_node_id]
         except KeyError:
             item_name = await fetch_item_name(item_node_id)
-            if item_name is None:
-                return None
             db[item_node_id] = item_name
 
     return item_name
@@ -41,3 +39,7 @@ def verify_secret(secret: str, payload: bytes, signature_header: str) -> bool:
         return True
     expected_signature = generate_signature(secret, payload)
     return hmac.compare_digest(expected_signature, signature_header)
+
+
+def add_bot_log_prefix(text: str) -> str:
+    return f"[BOT] {text}"

@@ -3,6 +3,7 @@ from unittest.mock import AsyncMock, mock_open, patch
 
 import pytest
 from aiohttp import ClientSession
+from fastapi import HTTPException
 from hikari import (
     ChannelFlag,
     ForumLayoutType,
@@ -119,14 +120,21 @@ async def test_fetch_item_name_partial(mock_post_request):
     mock_response = {"data": {"node": {"content": None}}}
     mock_post_request.return_value = MockResponse(mock_response)
 
-    assert await utils.fetch_item_name("<node_id>") is None
+    with pytest.raises(HTTPException) as exception:
+        await utils.fetch_item_name("<node_id>")
+
+    assert exception.value.status_code == 500
+    assert exception.value.detail == "Could not fetch item name."
 
 
 @patch.object(ClientSession, "post")
 async def test_fetch_item_name_none(mock_post_request):
     mock_post_request.return_value = MockResponse({})
 
-    assert await utils.fetch_item_name("<node_id>") is None
+    with pytest.raises(HTTPException) as exception:
+        await utils.fetch_item_name("<node_id>")
+    assert exception.value.status_code == 500
+    assert exception.value.detail == "Could not fetch item name."
 
 
 @patch.object(ClientSession, "post")

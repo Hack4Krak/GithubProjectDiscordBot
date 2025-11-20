@@ -64,7 +64,7 @@ async def test_basic_event_only_creation(
     forum_channel_mock,
     logger_mock,
 ):
-    mock_os_getenv.side_effect = ["some_token", 1, 2, "some_path"]
+    mock_os_getenv.side_effect = ["some_token", 1, 2, "some_path", "db-path.db"]
     mock_restapp_acquire.return_value = RestClientContextManagerMock(rest_client_mock)
     mock_fetch_channel.return_value = forum_channel_mock
     mock_fetch_active_threads.return_value = []

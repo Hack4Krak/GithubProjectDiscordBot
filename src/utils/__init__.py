@@ -9,7 +9,7 @@ from src.utils.github_api import fetch_item_name
 
 
 async def get_item_name(item_node_id: str) -> str | None:
-    with shelve.open("item_name_to_node_id.db") as db:
+    with shelve.open(os.getenv("ITEM_NAME_TO_NODE_ID_DB_PATH", "item_name_to_node_id.db")) as db:
         try:
             item_name: str = db[item_node_id]
         except KeyError:

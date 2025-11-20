@@ -42,7 +42,16 @@ async def test_e2e(
 ):
     mock_restapp_acquire.return_value = RestClientContextManagerMock(rest_client_mock)
     mock_fetch_channel.side_effect = [forum_channel_mock, post_mock]
-    mock_getenv.side_effect = ["some_token", 1, 2, "some_secret", "fake_project_id", "meow.yaml"]
+    mock_getenv.side_effect = [
+        "some_token",
+        1,
+        2,
+        "some_secret",
+        "fake_project_id",
+        "db-path.db",
+        "meow.yaml",
+        "db-path.db",
+    ]
     post_id_shelf = MockShelf({})
     mock_shelve_open.side_effect = [MockShelf({"item123": "audacity4"}), post_id_shelf]
     mock_fetch_active_threads.return_value = [post_mock]

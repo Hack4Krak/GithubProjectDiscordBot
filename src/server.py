@@ -6,7 +6,6 @@ from starlette.exceptions import HTTPException as StarletteHttpException
 from starlette.responses import JSONResponse
 
 from src.main import lifespan
-from src.utils import get_item_name, verify_secret
 from src.utils.data_types import (
     ProjectItemEdited,
     ProjectItemEditedAssignees,
@@ -17,6 +16,7 @@ from src.utils.data_types import (
     WebhookRequest,
 )
 from src.utils.github_api import fetch_assignees, fetch_item_name, fetch_single_select_value
+from src.utils.misc import get_item_name, verify_secret
 
 app = FastAPI(lifespan=lifespan)
 

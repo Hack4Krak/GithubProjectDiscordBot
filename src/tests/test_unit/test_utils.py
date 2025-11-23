@@ -16,8 +16,8 @@ from hikari import (
 )
 from hikari.impl import EntityFactoryImpl, HTTPSettings, ProxySettings, RESTClientImpl
 
-from src import utils
 from src.utils import discord_rest_client, github_api
+from src.utils import misc as utils
 
 
 class MockShelf(dict):
@@ -97,7 +97,7 @@ async def test_get_item_name_exist_in_db(mock_shelve_open):
 
 
 @patch("shelve.open")
-@patch("src.utils.fetch_item_name", new_callable=AsyncMock)
+@patch("src.utils.misc.fetch_item_name", new_callable=AsyncMock)
 async def test_get_item_name_doesnt_exist_in_db(mock_fetch_item_name, mock_shelve_open):
     mock_shelf = MockShelf({})
     mock_shelve_open.return_value = mock_shelf

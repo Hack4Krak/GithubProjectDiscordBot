@@ -5,10 +5,10 @@ import os
 from hikari import GuildPublicThread, RESTApp, TokenType
 from hikari.impl import RESTClientImpl
 
-from src.utils import SharedForumChannel, add_bot_log_prefix, retrieve_discord_id
 from src.utils.data_types import ProjectItemEvent
 from src.utils.discord_rest_client import fetch_forum_channel, get_post_id
 from src.utils.error import ForumChannelNotFound
+from src.utils.misc import SharedForumChannel, add_bot_log_prefix, retrieve_discord_id
 
 
 async def run(state: asyncio.Queue[ProjectItemEvent], logger: logging.Logger, stop_after_one_event: bool = False):

@@ -9,9 +9,9 @@ from hikari.impl import RESTClientImpl
 from pydantic import BaseModel, ConfigDict, model_validator
 from pydantic_core import PydanticCustomError
 
-from src.utils import SharedForumChannel, add_bot_log_prefix, retrieve_discord_id
 from src.utils.discord_rest_client import fetch_forum_channel, get_new_tag
 from src.utils.error import ForumChannelNotFound
+from src.utils.misc import SharedForumChannel, add_bot_log_prefix, retrieve_discord_id
 
 
 class SimpleProjectItemEventType(Enum):

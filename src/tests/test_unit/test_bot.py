@@ -10,7 +10,6 @@ from hikari import ChannelFlag, ForumTag, GuildPublicThread, RESTAware, Snowflak
 from hikari.impl import RESTClientImpl
 
 from src.bot import process_update
-from src.utils import SharedForumChannel
 from src.utils.data_types import (
     ProjectItemEditedAssignees,
     ProjectItemEditedBody,
@@ -18,6 +17,7 @@ from src.utils.data_types import (
     ProjectItemEditedTitle,
     SimpleProjectItemEvent,
 )
+from src.utils.misc import SharedForumChannel
 
 from .test_utils import forum_channel_mock, rest_client_mock  # noqa: F401
 

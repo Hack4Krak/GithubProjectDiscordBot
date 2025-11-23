@@ -4,8 +4,19 @@ import os
 import shelve
 
 import yaml
+from aiorwlock import RWLock
+from hikari import GuildForumChannel
 
 from src.utils.github_api import fetch_item_name
+
+
+class SharedForumChannel:
+    forum_channel: GuildForumChannel
+    lock: RWLock
+
+    def __init__(self, forum_channel: GuildForumChannel):
+        self.forum_channel = forum_channel
+        self.lock = RWLock()
 
 
 async def get_item_name(item_node_id: str) -> str | None:

@@ -11,7 +11,7 @@ from pydantic_core import PydanticCustomError
 
 from src.utils.discord_rest_client import fetch_forum_channel, get_new_tag
 from src.utils.error import ForumChannelNotFound
-from src.utils.misc import SharedForumChannel, add_bot_log_prefix, retrieve_discord_id
+from src.utils.misc import SharedForumChannel, retrieve_discord_id
 
 
 class SimpleProjectItemEventType(Enum):
@@ -77,17 +77,17 @@ class SimpleProjectItemEvent(ProjectItemEvent):
             case "archived":
                 message = f"Task zarchiwizowany przez: {user_text_mention}."
                 await client.edit_channel(post.id, archived=True)
-                logger.info(add_bot_log_prefix(f"Post {self.name} archived."))
+                logger.info(f"Post {self.name} archived.")
 
                 return message
             case "restored":
                 message = f"Task przywrócony przez: {user_text_mention}."
                 await client.edit_channel(post.id, archived=False)
-                logger.info(add_bot_log_prefix(f"Post {self.name} restored."))
+                logger.info(f"Post {self.name} restored.")
                 return message
             case "deleted":
                 await client.delete_channel(post.id)
-                logger.info(add_bot_log_prefix(f"Post {self.name} deleted."))
+                logger.info(f"Post {self.name} deleted.")
                 return None
             case _:
                 return None
@@ -112,7 +112,7 @@ class ProjectItemEditedBody(ProjectItemEdited):
         forum_channel_id: int,
     ) -> str:
         message = f"Opis taska zaktualizowany przez: {user_text_mention}. Nowy opis: \n{self.new_body}"
-        logger.info(add_bot_log_prefix(f"Post {self.name} body updated."))
+        logger.info(f"Post {self.name} body updated.")
 
         return message
 
@@ -144,7 +144,7 @@ class ProjectItemEditedAssignees(ProjectItemEdited):
 
         message = f"Osoby przypisane do taska edytowane, aktualni przypisani: {', '.join(assignee_mentions)}"
         await client.create_message(post.id, message, user_mentions=assignee_discord_ids)
-        logger.info(add_bot_log_prefix(f"Post {self.name} assignees updated."))
+        logger.info(f"Post {self.name} assignees updated.")
 
 
 class ProjectItemEditedTitle(ProjectItemEdited):
@@ -162,7 +162,7 @@ class ProjectItemEditedTitle(ProjectItemEdited):
         forum_channel_id: int,
     ) -> None:
         await client.edit_channel(post.id, name=self.new_title)
-        logger.info(add_bot_log_prefix(f"Post {self.name} title updated to {self.new_title}."))
+        logger.info(f"Post {self.name} title updated to {self.new_title}.")
 
 
 class ProjectItemEditedSingleSelect(ProjectItemEdited):
@@ -205,7 +205,7 @@ class ProjectItemEditedSingleSelect(ProjectItemEdited):
         new_tag = get_new_tag(new_tag_name, available_tags)
 
         if new_tag is None:
-            logger.info(add_bot_log_prefix(f"Tag {new_tag_name} not found, creating new tag."))
+            logger.info(f"Tag {new_tag_name} not found, creating new tag.")
             await client.edit_channel(forum_channel_id, available_tags=[*available_tags, ForumTag(name=new_tag_name)])
             forum_channel = await fetch_forum_channel(client, forum_channel_id)
             if forum_channel is None:
@@ -219,7 +219,7 @@ class ProjectItemEditedSingleSelect(ProjectItemEdited):
         current_tag_ids.append(new_tag.id)
 
         await client.edit_channel(post.id, applied_tags=current_tag_ids)
-        logger.info(add_bot_log_prefix(f"Post {self.name} tag updated to {new_tag_name}."))
+        logger.info(f"Post {self.name} tag updated to {new_tag_name}.")
 
 
 class ProjectV2Item(BaseModel):

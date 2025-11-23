@@ -22,22 +22,6 @@ class SingleSelectType(Enum):
     SECTION = "Section"
 
 
-def single_select_type_from_field_name(field_name: str) -> SingleSelectType | None:
-    match field_name:
-        case "Status":
-            return SingleSelectType.STATUS
-        case "Priority":
-            return SingleSelectType.PRIORITY
-        case "Size":
-            return SingleSelectType.SIZE
-        case "Iteration":
-            return SingleSelectType.ITERATION
-        case "Section":
-            return SingleSelectType.SECTION
-        case _:
-            return None
-
-
 @dataclass
 class ProjectItemEvent:
     name: str
@@ -84,9 +68,22 @@ class ProjectItemEditedTitle(ProjectItemEdited):
 
 
 class ProjectItemEditedSingleSelect(ProjectItemEdited):
-    def __init__(self, name: str, editor: str, new_value: str, value_type: SingleSelectType):
+    def __init__(self, name: str, editor: str, new_value: str, field_name: str):
         super().__init__(name, editor)
         self.new_value = new_value
+        match field_name:
+            case "Status":
+                value_type = SingleSelectType.STATUS
+            case "Priority":
+                value_type = SingleSelectType.PRIORITY
+            case "Size":
+                value_type = SingleSelectType.SIZE
+            case "Iteration":
+                value_type = SingleSelectType.ITERATION
+            case "Section":
+                value_type = SingleSelectType.SECTION
+            case _:
+                raise HTTPException(status_code=400, detail=f"Unknown single select field name: {field_name}")
         self.value_type = value_type
 
 

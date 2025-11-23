@@ -14,7 +14,6 @@ from src.utils.data_types import (
     ProjectItemEditedTitle,
     ProjectV2Item,
     Sender,
-    SingleSelectType,
     WebhookRequest,
 )
 
@@ -65,7 +64,7 @@ async def test_process_edition_single_select_changed(mock_webhook_request_model)
         )
     )
     item_name = "Lil puppy"
-    expected_object = ProjectItemEditedSingleSelect(item_name, "node_id", "Smol like lil kitten", SingleSelectType.SIZE)
+    expected_object = ProjectItemEditedSingleSelect(item_name, "node_id", "Smol like lil kitten", "Size")
 
     assert await process_edition(mock_webhook_request_model, item_name) == expected_object
 
@@ -76,6 +75,6 @@ async def test_process_edition_iteration_changed(mock_webhook_request_model):
         field_value=FieldValue(field_name="Iteration", field_type="iteration", to=FieldValueTo(title=new_title))
     )
     item_name = "Create Dockerfile for production"
-    expected_object = ProjectItemEditedSingleSelect(item_name, "node_id", new_title, SingleSelectType.ITERATION)
+    expected_object = ProjectItemEditedSingleSelect(item_name, "node_id", new_title, "Iteration")
 
     assert await process_edition(mock_webhook_request_model, item_name) == expected_object

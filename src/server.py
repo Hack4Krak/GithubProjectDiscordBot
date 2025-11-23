@@ -1,14 +1,11 @@
-import asyncio
-import logging
 import os
-from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
 from pydantic import ValidationError
 from starlette.exceptions import HTTPException as StarletteHttpException
 from starlette.responses import JSONResponse
 
-from src.bot import run
+from src.main import lifespan
 from src.utils import get_item_name, verify_secret
 from src.utils.data_types import (
     ProjectItemEdited,
@@ -20,33 +17,6 @@ from src.utils.data_types import (
     WebhookRequest,
 )
 from src.utils.github_api import fetch_assignees, fetch_item_name, fetch_single_select_value
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # startup
-    app.update_queue = asyncio.Queue()
-    app.logger = logging.getLogger("uvicorn.error")
-    task = asyncio.create_task(run(app.update_queue, app.logger))
-    task.add_done_callback(handle_task_exception)
-    yield
-    # shutdown
-    task.cancel()
-    try:
-        await task
-    except asyncio.CancelledError:
-        pass
-
-
-def handle_task_exception(task: asyncio.Task):
-    try:
-        exception = task.exception()
-    except asyncio.CancelledError:
-        return
-
-    if exception:
-        app.logger.error(f"Bot task crashed: {exception}")
-
 
 app = FastAPI(lifespan=lifespan)
 

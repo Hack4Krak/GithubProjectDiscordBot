@@ -16,7 +16,6 @@ from src.utils.data_types import (
     ProjectItemEditedSingleSelect,
     ProjectItemEditedTitle,
     SimpleProjectItemEvent,
-    SingleSelectType,
 )
 
 from .test_utils import forum_channel_mock, rest_client_mock  # noqa: F401
@@ -274,7 +273,7 @@ async def test_process_update_single_select(
     logger_mock,
 ):
     state = asyncio.Queue()
-    await state.put(ProjectItemEditedSingleSelect("audacity4", "norbiros", "big", SingleSelectType.SIZE))
+    await state.put(ProjectItemEditedSingleSelect("audacity4", "norbiros", "big", "Size"))
     mock_get_post_id.return_value = 621
     user_id = 2137696742041
     mock_retrieve_discord_id.return_value = user_id
@@ -304,7 +303,7 @@ async def test_process_update_single_select_tag_unavailable(
     logger_mock,
 ):
     state = asyncio.Queue()
-    await state.put(ProjectItemEditedSingleSelect("audacity4", "norbiros", "big", SingleSelectType.SIZE))
+    await state.put(ProjectItemEditedSingleSelect("audacity4", "norbiros", "big", "Size"))
     mock_get_post_id.return_value = 621
     user_id = 2137696742041
     mock_retrieve_discord_id.return_value = user_id

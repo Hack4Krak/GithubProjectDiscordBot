@@ -17,9 +17,7 @@ from src.utils.data_types import (
     ProjectItemEditedSingleSelect,
     ProjectItemEditedTitle,
     SimpleProjectItemEvent,
-    SingleSelectType,
     WebhookRequest,
-    single_select_type_from_field_name,
 )
 from src.utils.github_api import fetch_assignees, fetch_item_name, fetch_single_select_value
 
@@ -143,14 +141,9 @@ async def process_edition(body: WebhookRequest, item_name: str) -> ProjectItemEd
             field_name = field_changed.field_name
             if new_value is None:
                 new_value = await fetch_single_select_value(body.projects_v2_item.node_id, field_name)
-            value_type = single_select_type_from_field_name(field_name)
-            if value_type is None:
-                raise HTTPException(status_code=400, detail=f"Unknown single select field name: {field_name}")
-            project_item_edited = ProjectItemEditedSingleSelect(item_name, editor, new_value, value_type)
+            project_item_edited = ProjectItemEditedSingleSelect(item_name, editor, new_value, field_name)
             return project_item_edited
         case "iteration":
             new_value = field_changed.to.title
-            project_item_edited = ProjectItemEditedSingleSelect(
-                item_name, editor, new_value, SingleSelectType.ITERATION
-            )
+            project_item_edited = ProjectItemEditedSingleSelect(item_name, editor, new_value, "Iteration")
             return project_item_edited

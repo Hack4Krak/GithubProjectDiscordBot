@@ -7,16 +7,17 @@ from starlette.responses import JSONResponse
 
 from src.main import lifespan
 from src.utils.data_types import (
-    ProjectItemEdited,
     ProjectItemEditedAssignees,
     ProjectItemEditedBody,
     ProjectItemEditedSingleSelect,
     ProjectItemEditedTitle,
+    ProjectItemEvent,
     SimpleProjectItemEvent,
     WebhookRequest,
 )
 from src.utils.github_api import fetch_assignees, fetch_item_name, fetch_single_select_value
-from src.utils.misc import get_item_name, verify_secret
+from src.utils.misc import get_item_name
+from src.utils.signature_verification import verify_signature
 
 app = FastAPI(lifespan=lifespan)
 
@@ -56,15 +57,9 @@ async def webhook_endpoint(request: Request) -> JSONResponse:
     body_bytes = await request.body()
     if not body_bytes:
         raise HTTPException(status_code=400, detail="Missing request body.")
+
     signature = request.headers.get("X-Hub-Signature-256")
-    if signature:
-        correct_signature = verify_secret(os.getenv("GITHUB_WEBHOOK_SECRET", ""), body_bytes, signature)
-        if not correct_signature:
-            raise HTTPException(status_code=401, detail="Invalid signature.")
-    elif os.getenv("GITHUB_WEBHOOK_SECRET", ""):
-        raise HTTPException(status_code=401, detail="Missing signature.")
-    else:
-        app.logger.warning("No signature provided and no secret set; skipping verification.")
+    verify_signature(signature, body_bytes, app.logger)
 
     body = WebhookRequest.model_validate_json(body_bytes)
 
@@ -73,18 +68,26 @@ async def webhook_endpoint(request: Request) -> JSONResponse:
 
     item_name = await get_item_name(body.projects_v2_item.node_id)
 
-    if body.action == "edited":
-        project_item_event = await process_edition(body, item_name)
-    else:
-        project_item_event = SimpleProjectItemEvent(item_name, body.sender.node_id, body.action)
-
+    project_item_event = await process_action(body, item_name)
     await app.update_queue.put(project_item_event)
 
     app.logger.info(f"Received webhook event for item: {item_name}")
     return JSONResponse(content={"detail": "Successfully received webhook data"})
 
 
-async def process_edition(body: WebhookRequest, item_name: str) -> ProjectItemEdited:
+async def process_action(body: WebhookRequest, item_name: str) -> ProjectItemEvent:
+    if body.action == "edited":
+        return await process_edition(body, item_name)
+    else:
+        try:
+            return SimpleProjectItemEvent(item_name, body.sender.node_id, body.action)
+        except ValueError as error:
+            raise HTTPException(status_code=400, detail="Unsupported action.") from error
+
+
+async def process_edition(
+    body: WebhookRequest, item_name: str
+) -> ProjectItemEditedBody | ProjectItemEditedTitle | ProjectItemEditedAssignees | ProjectItemEditedSingleSelect:
     editor = body.sender.node_id
     body_changed = body.changes.body
 
@@ -111,7 +114,10 @@ async def process_edition(body: WebhookRequest, item_name: str) -> ProjectItemEd
             field_name = field_changed.field_name
             if new_value is None:
                 new_value = await fetch_single_select_value(body.projects_v2_item.node_id, field_name)
-            project_item_edited = ProjectItemEditedSingleSelect(item_name, editor, new_value, field_name)
+            try:
+                project_item_edited = ProjectItemEditedSingleSelect(item_name, editor, new_value, field_name)
+            except ValueError as error:
+                raise HTTPException(status_code=400, detail="Unsupported single select field.") from error
             return project_item_edited
         case "iteration":
             new_value = field_changed.to.title

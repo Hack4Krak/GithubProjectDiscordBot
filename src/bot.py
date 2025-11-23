@@ -51,16 +51,7 @@ async def process_update(
     user_text_mention = f"<@{author_discord_id}>" if author_discord_id else "nieznany użytkownik"
 
     if post_id_or_post is None:
-        logger.info(f"Post not found, creating new post for item: {event.name}")
-        message = f"Nowy task stworzony {event.name} przez: {user_text_mention}"
-        async with shared_forum_channel.lock.reader_lock:
-            post: GuildPublicThread = await client.create_forum_post(
-                shared_forum_channel.forum_channel,
-                event.name,
-                message,
-                auto_archive_duration=10080,
-                user_mentions=user_mentions,
-            )
+        post = await create_post(logger, event, user_text_mention, shared_forum_channel, client, user_mentions)
     elif isinstance(post_id_or_post, int):
         post = await client.fetch_channel(post_id_or_post)
     else:
@@ -70,9 +61,29 @@ async def process_update(
         try:
             logger.error(f"Post with ID {post.id} is not a GuildPublicThread.")
         except AttributeError:
-            logger.error(f"Post with ID {post_id_or_post} is not a GuildPublicThread.")
+            logger.error(f"Post with name {event.name} is not a GuildPublicThread.")
         return
 
     message = await event.process(user_text_mention, post, client, logger, shared_forum_channel, forum_channel_id)
     if message:
         await client.create_message(post.id, message, user_mentions=user_mentions)
+
+
+async def create_post(
+    logger: logging.Logger,
+    event: ProjectItemEvent,
+    user_text_mention: str,
+    shared_forum_channel: SharedForumChannel,
+    client: RESTClientImpl,
+    user_mentions: list[str],
+) -> GuildPublicThread:
+    logger.info(f"Post not found, creating new post for item: {event.name}")
+    message = f"Nowy task stworzony {event.name} przez: {user_text_mention}"
+    async with shared_forum_channel.lock.reader_lock:
+        return await client.create_forum_post(
+            shared_forum_channel.forum_channel,
+            event.name,
+            message,
+            auto_archive_duration=10080,
+            user_mentions=user_mentions,
+        )

@@ -3,7 +3,6 @@ from enum import Enum
 from logging import Logger
 from typing import Literal
 
-from fastapi import HTTPException
 from hikari import ForumTag, GuildForumChannel, GuildPublicThread
 from hikari.impl import RESTClientImpl
 from pydantic import BaseModel, ConfigDict, model_validator
@@ -50,6 +49,11 @@ class ProjectItemEvent:
 
 class SimpleProjectItemEvent(ProjectItemEvent):
     def __init__(self, name: str, sender: str, action_type: str):
+        super().__init__(name, sender)
+        self.event_type = self.action_type_to_event_type(action_type)
+
+    @staticmethod
+    def action_type_to_event_type(action_type: str) -> SimpleProjectItemEventType:
         match action_type:
             case "created":
                 event_type = SimpleProjectItemEventType.CREATED
@@ -60,9 +64,8 @@ class SimpleProjectItemEvent(ProjectItemEvent):
             case "deleted":
                 event_type = SimpleProjectItemEventType.DELETED
             case _:
-                raise HTTPException(status_code=400, detail=f"Unknown action type: {action_type}")
-        super().__init__(name, sender)
-        self.event_type = event_type
+                raise ValueError(f"Unknown action type: {action_type}")
+        return event_type
 
     async def process(
         self,
@@ -78,7 +81,6 @@ class SimpleProjectItemEvent(ProjectItemEvent):
                 message = f"Task zarchiwizowany przez: {user_text_mention}."
                 await client.edit_channel(post.id, archived=True)
                 logger.info(f"Post {self.name} archived.")
-
                 return message
             case "restored":
                 message = f"Task przywrócony przez: {user_text_mention}."
@@ -93,11 +95,7 @@ class SimpleProjectItemEvent(ProjectItemEvent):
                 return None
 
 
-class ProjectItemEdited(ProjectItemEvent):
-    pass
-
-
-class ProjectItemEditedBody(ProjectItemEdited):
+class ProjectItemEditedBody(ProjectItemEvent):
     def __init__(self, name: str, editor: str, new_body: str):
         super().__init__(name, editor)
         self.new_body = new_body
@@ -117,7 +115,7 @@ class ProjectItemEditedBody(ProjectItemEdited):
         return message
 
 
-class ProjectItemEditedAssignees(ProjectItemEdited):
+class ProjectItemEditedAssignees(ProjectItemEvent):
     def __init__(self, name: str, editor: str, new_assignees: list[str]):
         super().__init__(name, editor)
         self.new_assignees = new_assignees
@@ -136,9 +134,9 @@ class ProjectItemEditedAssignees(ProjectItemEdited):
         if self.new_assignees:
             for assignee in self.new_assignees:
                 discord_id = retrieve_discord_id(assignee)
-                assignee_discord_ids.append(int(discord_id)) if discord_id else None
                 if discord_id:
                     assignee_mentions.append(f"<@{discord_id}>")
+                    assignee_discord_ids.append(int(discord_id))
         else:
             assignee_mentions.append("Brak przypisanych osób")
 
@@ -147,7 +145,7 @@ class ProjectItemEditedAssignees(ProjectItemEdited):
         logger.info(f"Post {self.name} assignees updated.")
 
 
-class ProjectItemEditedTitle(ProjectItemEdited):
+class ProjectItemEditedTitle(ProjectItemEvent):
     def __init__(self, name: str, editor: str, new_name: str):
         super().__init__(name, editor)
         self.new_title = new_name
@@ -165,10 +163,14 @@ class ProjectItemEditedTitle(ProjectItemEdited):
         logger.info(f"Post {self.name} title updated to {self.new_title}.")
 
 
-class ProjectItemEditedSingleSelect(ProjectItemEdited):
+class ProjectItemEditedSingleSelect(ProjectItemEvent):
     def __init__(self, name: str, editor: str, new_value: str, field_name: str):
         super().__init__(name, editor)
         self.new_value = new_value
+        self.value_type = self.field_name_to_value_type(field_name)
+
+    @staticmethod
+    def field_name_to_value_type(field_name: str) -> SingleSelectType:
         match field_name:
             case "Status":
                 value_type = SingleSelectType.STATUS
@@ -181,8 +183,8 @@ class ProjectItemEditedSingleSelect(ProjectItemEdited):
             case "Section":
                 value_type = SingleSelectType.SECTION
             case _:
-                raise HTTPException(status_code=400, detail=f"Unknown single select field name: {field_name}")
-        self.value_type = value_type
+                raise ValueError(f"Unknown single select field name: {field_name}")
+        return value_type
 
     async def process(
         self,

@@ -1,5 +1,6 @@
 import hashlib
 import hmac
+import logging
 import os
 import shelve
 
@@ -52,5 +53,16 @@ def verify_secret(secret: str, payload: bytes, signature_header: str) -> bool:
     return hmac.compare_digest(expected_signature, signature_header)
 
 
-def add_bot_log_prefix(text: str) -> str:
-    return f"[BOT] {text}"
+class BotPrefixFilter(logging.Filter):
+    def filter(self, record: logging.LogRecord) -> bool:
+        record.msg = f"[BOT] {record.msg}"
+        return True
+
+
+def get_bot_logger() -> logging.Logger:
+    logger = logging.getLogger("uvicorn.error.bot")
+
+    if not any(isinstance(f, BotPrefixFilter) for f in logger.filters):
+        logger.addFilter(BotPrefixFilter())
+
+    return logger

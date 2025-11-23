@@ -74,5 +74,5 @@ async def test_basic_event_only_creation(
     mock_create_forum_post.return_value = "created_forum_post"
     update_queue = asyncio.Queue()
     await update_queue.put(ProjectItemEvent(name="Test Item", sender="test_sender"))
-    await run(update_queue, logger_mock, stop_after_one_event=True)
+    await run(update_queue, stop_after_one_event=True)
     mock_create_forum_post.assert_called()

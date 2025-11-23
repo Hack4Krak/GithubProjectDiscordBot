@@ -86,7 +86,7 @@ async def test_e2e(
 
     for _ in range(500):  # up to ~5 seconds total
         try:
-            mock_logger.assert_any_call("[BOT] Post audacity4 body updated.")
+            mock_logger.assert_any_call("Post audacity4 body updated.")
             break
         except AssertionError:
             pass

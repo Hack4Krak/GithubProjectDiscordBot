@@ -21,7 +21,7 @@ async def lifespan(app: FastAPI):
     # startup
     app.update_queue = asyncio.Queue()
     app.logger = logging.getLogger("uvicorn.error")
-    task = asyncio.create_task(run(app.update_queue, app.logger))
+    task = asyncio.create_task(run(app.update_queue))
     task.add_done_callback(lambda task: handle_task_exception(task, app))
     yield
     # shutdown

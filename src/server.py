@@ -16,9 +16,9 @@ from src.utils.data_types import (
     ProjectItemEditedBody,
     ProjectItemEditedSingleSelect,
     ProjectItemEditedTitle,
+    SimpleProjectItemEvent,
     SingleSelectType,
     WebhookRequest,
-    simple_project_item_from_action_type,
     single_select_type_from_field_name,
 )
 from src.utils.github_api import fetch_assignees, fetch_item_name, fetch_single_select_value
@@ -108,9 +108,7 @@ async def webhook_endpoint(request: Request) -> JSONResponse:
     if body.action == "edited":
         project_item_event = await process_edition(body, item_name)
     else:
-        project_item_event = simple_project_item_from_action_type(
-            body["action"], item_name, body.get("sender", {}).get("node_id", "Unknown")
-        )
+        project_item_event = SimpleProjectItemEvent(item_name, body.sender.node_id, body.action)
 
     await app.update_queue.put(project_item_event)
 

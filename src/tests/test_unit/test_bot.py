@@ -16,7 +16,6 @@ from src.utils.data_types import (
     ProjectItemEditedSingleSelect,
     ProjectItemEditedTitle,
     SimpleProjectItemEvent,
-    SimpleProjectItemEventType,
     SingleSelectType,
 )
 
@@ -72,7 +71,7 @@ async def test_process_update_created_success(
     logger_mock,
 ):
     state = asyncio.Queue()
-    await state.put(SimpleProjectItemEvent("mmmocking", "norbiros", SimpleProjectItemEventType.CREATED))
+    await state.put(SimpleProjectItemEvent("mmmocking", "norbiros", "created"))
     mock_get_post_id.return_value = None
     mock_retrieve_discord_id.return_value = 2137696742041
 
@@ -87,7 +86,7 @@ async def test_process_update_already_exists(
     mock_get_post_id, mock_retrieve_discord_id, mock_fetch_channel, forum_channel_mock, rest_client_mock, logger_mock
 ):
     state = asyncio.Queue()
-    await state.put(SimpleProjectItemEvent("mmmocking", "norbiros", SimpleProjectItemEventType.CREATED))
+    await state.put(SimpleProjectItemEvent("mmmocking", "norbiros", "created"))
     mock_get_post_id.return_value = 1
     mock_retrieve_discord_id.return_value = "2137696742041"
 
@@ -112,7 +111,7 @@ async def test_process_update_archived(
     logger_mock,
 ):
     state = asyncio.Queue()
-    await state.put(SimpleProjectItemEvent("audacity4", "norbiros", SimpleProjectItemEventType.ARCHIVED))
+    await state.put(SimpleProjectItemEvent("audacity4", "norbiros", "archived"))
     mock_get_post_id.return_value = 621
     user_id = 2137696742041
     mock_retrieve_discord_id.return_value = user_id
@@ -142,7 +141,7 @@ async def test_process_update_restored(
     logger_mock,
 ):
     state = asyncio.Queue()
-    await state.put(SimpleProjectItemEvent("audacity4", "norbiros", SimpleProjectItemEventType.RESTORED))
+    await state.put(SimpleProjectItemEvent("audacity4", "norbiros", "restored"))
     mock_get_post_id.return_value = 621
     user_id = 2137696742041
     mock_retrieve_discord_id.return_value = user_id
@@ -170,7 +169,7 @@ async def test_process_update_deleted(
     logger_mock,
 ):
     state = asyncio.Queue()
-    await state.put(SimpleProjectItemEvent("audacity4", "norbiros", SimpleProjectItemEventType.DELETED))
+    await state.put(SimpleProjectItemEvent("audacity4", "norbiros", "deleted"))
     mock_get_post_id.return_value = 621
     mock_retrieve_discord_id.return_value = "niepodam@norbiros.dev"
     mock_fetch_channel.return_value = post_mock

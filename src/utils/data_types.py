@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Literal
 
+from fastapi import HTTPException
 from pydantic import BaseModel, ConfigDict, model_validator
 from pydantic_core import PydanticCustomError
 
@@ -44,23 +45,20 @@ class ProjectItemEvent:
 
 
 class SimpleProjectItemEvent(ProjectItemEvent):
-    def __init__(self, name: str, sender: str, event_type: SimpleProjectItemEventType):
+    def __init__(self, name: str, sender: str, action_type: str):
+        match action_type:
+            case "created":
+                event_type = SimpleProjectItemEventType.CREATED
+            case "archived":
+                event_type = SimpleProjectItemEventType.ARCHIVED
+            case "restored":
+                event_type = SimpleProjectItemEventType.RESTORED
+            case "deleted":
+                event_type = SimpleProjectItemEventType.DELETED
+            case _:
+                raise HTTPException(status_code=400, detail=f"Unknown action type: {action_type}")
         super().__init__(name, sender)
         self.event_type = event_type
-
-
-def simple_project_item_from_action_type(action_type: str, name: str, sender: str):
-    match action_type:
-        case "created":
-            return SimpleProjectItemEvent(name, sender, SimpleProjectItemEventType.CREATED)
-        case "archived":
-            return SimpleProjectItemEvent(name, sender, SimpleProjectItemEventType.ARCHIVED)
-        case "restored":
-            return SimpleProjectItemEvent(name, sender, SimpleProjectItemEventType.RESTORED)
-        case "deleted":
-            return SimpleProjectItemEvent(name, sender, SimpleProjectItemEventType.DELETED)
-        case _:
-            raise ValueError(f"Unknown action type: {action_type}")
 
 
 class ProjectItemEdited(ProjectItemEvent):

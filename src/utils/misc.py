@@ -1,5 +1,3 @@
-import hashlib
-import hmac
 import logging
 import os
 import shelve
@@ -39,18 +37,6 @@ def retrieve_discord_id(node_id: str) -> str | None:
             return None
 
         return mapping.get(node_id, None)
-
-
-def generate_signature(secret: str, payload: bytes) -> str:
-    hash_object = hmac.new(secret.encode("utf-8"), msg=payload, digestmod=hashlib.sha256)
-    return f"sha256={hash_object.hexdigest()}"
-
-
-def verify_secret(secret: str, payload: bytes, signature_header: str) -> bool:
-    if not secret:
-        return True
-    expected_signature = generate_signature(secret, payload)
-    return hmac.compare_digest(expected_signature, signature_header)
 
 
 class BotPrefixFilter(logging.Filter):

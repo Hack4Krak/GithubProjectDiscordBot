@@ -1,8 +1,8 @@
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from src.server import process_edition
+from src.server import process_action, process_edition
 from src.utils.data_types import (
     Body,
     Changes,
@@ -14,6 +14,7 @@ from src.utils.data_types import (
     ProjectItemEditedTitle,
     ProjectV2Item,
     Sender,
+    SimpleProjectItemEvent,
     WebhookRequest,
 )
 
@@ -78,3 +79,20 @@ async def test_process_edition_iteration_changed(mock_webhook_request_model):
     expected_object = ProjectItemEditedSingleSelect(item_name, "node_id", new_title, "Iteration")
 
     assert await process_edition(mock_webhook_request_model, item_name) == expected_object
+
+
+@patch("src.server.process_edition", new_callable=AsyncMock)
+async def test_process_action_process_edition(mock_process_edition, mock_webhook_request_model):
+    test_event = SimpleProjectItemEvent("Test Item", "node_id", "created")
+    mock_process_edition.return_value = test_event
+
+    assert await process_action(mock_webhook_request_model, "Test Item") == test_event
+
+
+@patch("src.server.process_edition", new_callable=AsyncMock)
+async def test_process_action_simple_event(mock_process_edition, mock_webhook_request_model):
+    mock_webhook_request_model.action = "created"
+    test_event = SimpleProjectItemEvent("Test Item", "node_id", "created")
+    mock_process_edition.return_value = test_event
+
+    assert await process_action(mock_webhook_request_model, "Test Item") == test_event

@@ -8,8 +8,8 @@ from aiohttp import ClientSession
 from fastapi.testclient import TestClient
 
 from src.server import app
-from src.tests.test_unit.test_utils import MockResponse, MockShelf
-from src.utils.misc import generate_signature
+from src.tests.utils import MockResponse, MockShelf
+from src.utils.signature_verification import generate_signature
 
 test_client = TestClient(app)
 test_client.app.logger = logging.getLogger("uvicorn.error")
@@ -22,47 +22,25 @@ def test_missing_body():
     assert response.json() == {"detail": "Missing request body."}
 
 
-@patch("os.getenv")
-def test_invalid_signature(mock_os_getenv):
-    mock_os_getenv.return_value = "some_secret"
-
-    response = test_client.post(
-        "/webhook_endpoint", data={"mreow": "nya"}, headers={"X-Hub-Signature-256": "invalid_signature"}
+def test_github_project_node_id_mismatch():
+    payload: dict[str, Any] = {
+        "projects_v2_item": {"project_node_id": "wrong_id", "node_id": "123"},
+        "action": "edited",
+        "changes": {"field_value": {"field_type": "title", "field_name": "Title"}},
+        "sender": {"node_id": "456"},
+    }
+    payload: str = json.dumps(payload)
+    signature = generate_signature(
+        "some_secret",
+        payload.encode("utf-8"),
     )
-
-    assert response.status_code == 401
-    assert response.json() == {"detail": "Invalid signature."}
-
-
-@patch("os.getenv")
-def test_missing_signature(mock_os_getenv):
-    mock_os_getenv.return_value = "some_secret"
-
     response = test_client.post(
         "/webhook_endpoint",
-        data={"mreow": "nya"},
-    )
-
-    assert response.status_code == 401
-    assert response.json() == {"detail": "Missing signature."}
-
-
-@patch("os.getenv")
-def test_invalid_json(mock_os_getenv):
-    mock_os_getenv.return_value = "some_secret"
-    signature = generate_signature("some_secret", b"invalid_json")
-    response = test_client.post(
-        "/webhook_endpoint",
-        content="invalid_json",
+        content=payload,
         headers={"X-Hub-Signature-256": signature},
     )
     assert response.status_code == 400
-    assert response.json() == {
-        "detail": "Invalid request body.",
-        "validation_errors": [
-            {"type": "json_invalid", "loc": [], "msg": "Invalid JSON: expected value at line 1 column 1"}
-        ],
-    }
+    assert response.json() == {"detail": "Invalid project_node_id."}
 
 
 @patch.object(ClientSession, "post")

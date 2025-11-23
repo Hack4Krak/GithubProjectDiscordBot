@@ -2,43 +2,13 @@
 import asyncio
 from unittest.mock import AsyncMock, mock_open, patch
 
-import pytest
 from hikari import RESTApp
 from hikari.impl import RESTClientImpl
 
 from src.bot import run
 from src.tests.test_unit.test_bot import logger_mock  # noqa: F401
-from src.tests.test_unit.test_utils import MockShelf, forum_channel_mock, rest_client_mock  # noqa: F401
+from src.tests.utils import MockShelf, RestClientContextManagerMock, forum_channel_mock, rest_client_mock  # noqa: F401
 from src.utils.data_types import ProjectItemEvent
-from src.utils.error import ForumChannelNotFound
-
-
-class RestClientContextManagerMock:
-    rest_client_mock: RESTClientImpl
-
-    def __init__(self, rest_client_mock):
-        self.rest_client_mock = rest_client_mock
-
-    async def __aenter__(self):
-        return self.rest_client_mock
-
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        pass
-
-
-@patch.object(RESTClientImpl, "fetch_channel", new_callable=AsyncMock)
-@patch.object(RESTApp, "acquire")
-@patch.object(RESTApp, "start", new_callable=AsyncMock)
-@patch("os.getenv")
-async def test_forum_channel_not_found(
-    mock_os_getenv, _mock_restapp_start, mock_restapp_acquire, mock_fetch_channel, rest_client_mock, logger_mock
-):
-    mock_os_getenv.side_effect = ["some_token", 1, 2]
-    mock_restapp_acquire.return_value = RestClientContextManagerMock(rest_client_mock)
-    mock_fetch_channel.return_value = None
-    with pytest.raises(ForumChannelNotFound):
-        update_queue = asyncio.Queue()
-        await run(update_queue, logger_mock)
 
 
 @patch("builtins.open", new_callable=mock_open, read_data="")

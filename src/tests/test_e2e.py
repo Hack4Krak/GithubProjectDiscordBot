@@ -12,9 +12,8 @@ from uvicorn import Config, Server
 
 from src.server import app
 from src.tests.test_integration.test_bot import RestClientContextManagerMock
-from src.tests.test_unit.test_bot import post_mock  # noqa: F401
-from src.tests.test_unit.test_utils import MockShelf, forum_channel_mock, rest_client_mock  # noqa: F401
-from src.utils.misc import generate_signature
+from src.tests.utils import MockShelf, forum_channel_mock, full_post_mock, rest_client_mock  # noqa: F401
+from src.utils.signature_verification import generate_signature
 
 
 @patch.object(Logger, "info")
@@ -38,10 +37,10 @@ async def test_e2e(
     mock_logger,
     rest_client_mock,
     forum_channel_mock,
-    post_mock,
+    full_post_mock,
 ):
     mock_restapp_acquire.return_value = RestClientContextManagerMock(rest_client_mock)
-    mock_fetch_channel.side_effect = [forum_channel_mock, post_mock]
+    mock_fetch_channel.side_effect = [forum_channel_mock, full_post_mock]
     mock_getenv.side_effect = [
         "some_token",
         1,
@@ -54,7 +53,7 @@ async def test_e2e(
     ]
     post_id_shelf = MockShelf({})
     mock_shelve_open.side_effect = [MockShelf({"item123": "audacity4"}), post_id_shelf]
-    mock_fetch_active_threads.return_value = [post_mock]
+    mock_fetch_active_threads.return_value = [full_post_mock]
     config = Config(app=app, host="127.0.0.1", port=8000, log_level="critical")
     server = Server(config=config)
 

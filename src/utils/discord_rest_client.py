@@ -4,6 +4,8 @@ import shelve
 from hikari import ForumTag, GuildForumChannel, GuildThreadChannel
 from hikari.impl import RESTClientImpl
 
+from src.utils.github_api import fetch_item_name
+
 
 async def fetch_forum_channel(client: RESTClientImpl, forum_channel_id: int) -> GuildForumChannel | None:
     forum_channel = await client.fetch_channel(forum_channel_id)
@@ -18,14 +20,15 @@ def get_new_tag(new_tag_name: str, available_tags: list[ForumTag]) -> ForumTag |
 
 
 async def get_post_id(
-    name: str, discord_guild_id: int, forum_channel_id: int, rest_client: RESTClientImpl
+    node_id: str, discord_guild_id: int, forum_channel_id: int, rest_client: RESTClientImpl
 ) -> int | GuildThreadChannel | None:
     with shelve.open(os.getenv("POST_ID_DB_PATH", "post_id.db")) as db:
         try:
-            post_id: str = db[name]
+            post_id: str = db[node_id]
             return int(post_id)
         except KeyError:
             pass
+        name = await fetch_item_name(node_id)
         for thread in await rest_client.fetch_active_threads(discord_guild_id):
             if thread.name == name:
                 db[name] = thread.id

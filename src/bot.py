@@ -8,6 +8,7 @@ from hikari.impl import RESTClientImpl
 from src.utils.data_types import ProjectItemEvent
 from src.utils.discord_rest_client import fetch_forum_channel, get_post_id
 from src.utils.error import ForumChannelNotFound
+from src.utils.github_api import fetch_item_name
 from src.utils.misc import SharedForumChannel, get_bot_logger, retrieve_discord_id
 
 
@@ -43,9 +44,9 @@ async def process_update(
     logger: logging.Logger,
 ):
     event = await state.get()
-    logger.info(f"Processing event for item: {event.name}")
+    logger.info(f"Processing event for item: {event.node_id}")
 
-    post_id_or_post = await get_post_id(event.name, discord_guild_id, forum_channel_id, client)
+    post_id_or_post = await get_post_id(event.node_id, discord_guild_id, forum_channel_id, client)
     author_discord_id = retrieve_discord_id(event.sender)
     user_mentions = [author_discord_id] if author_discord_id else []
     user_text_mention = f"<@{author_discord_id}>" if author_discord_id else "nieznany użytkownik"
@@ -61,7 +62,7 @@ async def process_update(
         try:
             logger.error(f"Post with ID {post.id} is not a GuildPublicThread.")
         except AttributeError:
-            logger.error(f"Post with name {event.name} is not a GuildPublicThread.")
+            logger.error(f"Post with node_id {event.node_id} is not a GuildPublicThread.")
         return
 
     message = await event.process(user_text_mention, post, client, logger, shared_forum_channel, forum_channel_id)
@@ -77,12 +78,13 @@ async def create_post(
     client: RESTClientImpl,
     user_mentions: list[str],
 ) -> GuildPublicThread:
-    logger.info(f"Post not found, creating new post for item: {event.name}")
-    message = f"Nowy task stworzony {event.name} przez: {user_text_mention}"
+    logger.info(f"Post not found, creating new post for item: {event.node_id}")
+    item_name = await fetch_item_name(event.node_id)
+    message = f"Nowy task stworzony {item_name} przez: {user_text_mention}"
     async with shared_forum_channel.lock.reader_lock:
         return await client.create_forum_post(
             shared_forum_channel.forum_channel,
-            event.name,
+            item_name,
             message,
             auto_archive_duration=10080,
             user_mentions=user_mentions,

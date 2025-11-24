@@ -1,12 +1,9 @@
 import logging
 import os
-import shelve
 
 import yaml
 from aiorwlock import RWLock
 from hikari import GuildForumChannel
-
-from src.utils.github_api import fetch_item_name
 
 
 class SharedForumChannel:
@@ -16,17 +13,6 @@ class SharedForumChannel:
     def __init__(self, forum_channel: GuildForumChannel):
         self.forum_channel = forum_channel
         self.lock = RWLock()
-
-
-async def get_item_name(item_node_id: str) -> str | None:
-    with shelve.open(os.getenv("ITEM_NAME_TO_NODE_ID_DB_PATH", "item_name_to_node_id.db")) as db:
-        try:
-            item_name: str = db[item_node_id]
-        except KeyError:
-            item_name = await fetch_item_name(item_node_id)
-            db[item_node_id] = item_name
-
-    return item_name
 
 
 def retrieve_discord_id(node_id: str) -> str | None:

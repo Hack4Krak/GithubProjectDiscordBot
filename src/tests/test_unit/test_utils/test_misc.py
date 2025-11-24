@@ -2,29 +2,10 @@
 import asyncio
 import logging
 from io import StringIO
-from unittest.mock import AsyncMock, mock_open, patch
+from unittest.mock import mock_open, patch
 
 from src.tests.utils import MockShelf, forum_channel_mock, shared_forum_channel_mock  # noqa: F401
 from src.utils import misc
-
-
-@patch("shelve.open")
-async def test_get_item_name_exist_in_db(mock_shelve_open):
-    mock_db = {"O_kgDOCUX8Wg": "crabcraft"}
-    mock_shelve_open.return_value = MockShelf(mock_db)
-
-    assert await misc.get_item_name("O_kgDOCUX8Wg") == "crabcraft"
-
-
-@patch("shelve.open")
-@patch("src.utils.misc.fetch_item_name", new_callable=AsyncMock)
-async def test_get_item_name_doesnt_exist_in_db(mock_fetch_item_name, mock_shelve_open):
-    mock_shelf = MockShelf({})
-    mock_shelve_open.return_value = mock_shelf
-    mock_fetch_item_name.return_value = "crabcraft"
-
-    assert await misc.get_item_name("O_kgDOCUX8Wg") == "crabcraft"
-    assert mock_shelf.get("O_kgDOCUX8Wg") == "crabcraft"
 
 
 @patch("builtins.open", new_callable=mock_open, read_data='MDQ6VXNlcjY2NTE0ODg1: "393756120952602625"')

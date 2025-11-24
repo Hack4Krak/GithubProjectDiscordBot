@@ -16,7 +16,6 @@ from src.utils.data_types import (
     WebhookRequest,
 )
 from src.utils.github_api import fetch_assignees, fetch_item_name, fetch_single_select_value
-from src.utils.misc import get_item_name
 from src.utils.signature_verification import verify_signature
 
 app = FastAPI(lifespan=lifespan)
@@ -65,32 +64,32 @@ async def webhook_endpoint(request: Request) -> JSONResponse:
     if body.projects_v2_item.project_node_id != os.getenv("GITHUB_PROJECT_NODE_ID"):
         raise HTTPException(status_code=400, detail="Invalid project_node_id.")
 
-    item_name = await get_item_name(body.projects_v2_item.node_id)
-    project_item_event = await process_action(body, item_name)
+    project_item_event = await process_action(body)
     await app.update_queue.put(project_item_event)
 
-    app.logger.info(f"Received webhook event for item: {item_name}")
+    app.logger.info(f"Received webhook event for item: {body.projects_v2_item.node_id}")
     return JSONResponse(content={"detail": "Successfully received webhook data"})
 
 
-async def process_action(body: WebhookRequest, item_name: str) -> ProjectItemEvent:
+async def process_action(body: WebhookRequest) -> ProjectItemEvent:
     if body.action == "edited":
-        return await process_edition(body, item_name)
+        return await process_edition(body)
     else:
         try:
-            return SimpleProjectItemEvent(item_name, body.sender.node_id, body.action)
+            return SimpleProjectItemEvent(body.projects_v2_item.node_id, body.sender.node_id, body.action)
         except ValueError as error:
             raise HTTPException(status_code=400, detail="Unsupported action.") from error
 
 
 async def process_edition(
-    body: WebhookRequest, item_name: str
+    body: WebhookRequest,
 ) -> ProjectItemEditedBody | ProjectItemEditedTitle | ProjectItemEditedAssignees | ProjectItemEditedSingleSelect:
     editor = body.sender.node_id
     body_changed = body.changes.body
+    item_node_id = body.projects_v2_item.node_id
 
     if body_changed is not None:
-        project_item_edited = ProjectItemEditedBody(item_name, editor, body_changed.to)
+        project_item_edited = ProjectItemEditedBody(item_node_id, editor, body_changed.to)
         return project_item_edited
 
     field_changed = body.changes.field_value
@@ -101,11 +100,11 @@ async def process_edition(
     match field_changed.field_type:
         case "assignees":
             new_assignees = await fetch_assignees(body.projects_v2_item.node_id)
-            project_item_edited = ProjectItemEditedAssignees(item_name, editor, new_assignees)
+            project_item_edited = ProjectItemEditedAssignees(item_node_id, editor, new_assignees)
             return project_item_edited
         case "title":
             new_title = await fetch_item_name(body.projects_v2_item.node_id)
-            project_item_edited = ProjectItemEditedTitle(item_name, editor, new_title)
+            project_item_edited = ProjectItemEditedTitle(item_node_id, editor, new_title)
             return project_item_edited
         case "single_select":
             new_value = field_changed.to.name
@@ -113,11 +112,11 @@ async def process_edition(
             if new_value is None:
                 new_value = await fetch_single_select_value(body.projects_v2_item.node_id, field_name)
             try:
-                project_item_edited = ProjectItemEditedSingleSelect(item_name, editor, new_value, field_name)
+                project_item_edited = ProjectItemEditedSingleSelect(item_node_id, editor, new_value, field_name)
             except ValueError as error:
                 raise HTTPException(status_code=400, detail="Unsupported single select field.") from error
             return project_item_edited
         case "iteration":
             new_value = field_changed.to.title
-            project_item_edited = ProjectItemEditedSingleSelect(item_name, editor, new_value, "Iteration")
+            project_item_edited = ProjectItemEditedSingleSelect(item_node_id, editor, new_value, "Iteration")
             return project_item_edited

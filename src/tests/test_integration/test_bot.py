@@ -11,6 +11,8 @@ from src.tests.utils import MockShelf, RestClientContextManagerMock, forum_chann
 from src.utils.data_types import ProjectItemEvent
 
 
+@patch("src.bot.fetch_item_name", new_callable=AsyncMock)
+@patch("src.utils.discord_rest_client.fetch_item_name", new_callable=AsyncMock)
 @patch("builtins.open", new_callable=mock_open, read_data="")
 @patch("shelve.open")
 @patch.object(RESTClientImpl, "create_forum_post", new_callable=AsyncMock)
@@ -30,6 +32,8 @@ async def test_basic_event_only_creation(
     mock_create_forum_post,
     mock_shelve_open,
     _mock_open,
+    mock_fetch_item_name,
+    mock_fetch_item_name2,
     rest_client_mock,
     forum_channel_mock,
     logger_mock,
@@ -42,7 +46,9 @@ async def test_basic_event_only_creation(
     mock_create_forum_post.return_value = None
     mock_shelve_open.return_value = MockShelf({})
     mock_create_forum_post.return_value = "created_forum_post"
+    mock_fetch_item_name.return_value = "audacity4"
+    mock_fetch_item_name2.return_value = "audacity4"
     update_queue = asyncio.Queue()
-    await update_queue.put(ProjectItemEvent(name="Test Item", sender="test_sender"))
+    await update_queue.put(ProjectItemEvent(node_id="node_id", sender="test_sender"))
     await run(update_queue, stop_after_one_event=True)
     mock_create_forum_post.assert_called()

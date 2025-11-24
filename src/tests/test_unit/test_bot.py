@@ -24,19 +24,22 @@ from src.utils.data_types import (
 from src.utils.error import ForumChannelNotFound
 
 
+@patch("src.bot.fetch_item_name", new_callable=AsyncMock)
 @patch.object(RESTClientImpl, "create_forum_post", new_callable=AsyncMock)
 async def test_create_post(
     mock_create_forum_post,
+    mock_fetch_item_name,
     logger_mock,
     rest_client_mock,
     shared_forum_channel_mock,
     user_text_mention,
 ):
+    mock_fetch_item_name.return_value = "audacity4"
     message = f"Nowy task stworzony audacity4 przez: {user_text_mention}"
     event = SimpleProjectItemEvent("audacity4", "norbiros", "created")
     await bot.create_post(logger_mock, event, user_text_mention, shared_forum_channel_mock, rest_client_mock, [])
     mock_create_forum_post.assert_called_with(
-        shared_forum_channel_mock.forum_channel, event.name, message, auto_archive_duration=10080, user_mentions=[]
+        shared_forum_channel_mock.forum_channel, event.node_id, message, auto_archive_duration=10080, user_mentions=[]
     )
 
 
@@ -57,7 +60,7 @@ async def test_process_no_post(
     mock_retrieve_discord_id.return_value = "123456789012345678"
     mock_create_post.return_value = full_post_mock
     state = asyncio.Queue()
-    event = SimpleProjectItemEvent("audacity4", "norbiros", "created")
+    event = SimpleProjectItemEvent("node_id", "norbiros", "created")
     await state.put(event)
     await bot.process_update(
         rest_client_mock,

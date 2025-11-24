@@ -208,6 +208,5 @@ __marimo__/
 
 .idea/
 
-# Shelves databases
-item_name_to_node_id.db
+# Shelves database
 post_id.db

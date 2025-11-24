@@ -30,7 +30,7 @@ class SingleSelectType(Enum):
 
 @dataclass
 class ProjectItemEvent:
-    name: str
+    node_id: str
     sender: str
 
     async def process(
@@ -48,8 +48,8 @@ class ProjectItemEvent:
 
 
 class SimpleProjectItemEvent(ProjectItemEvent):
-    def __init__(self, name: str, sender: str, action_type: str):
-        super().__init__(name, sender)
+    def __init__(self, node_id: str, sender: str, action_type: str):
+        super().__init__(node_id, sender)
         self.event_type = self.action_type_to_event_type(action_type)
 
     @staticmethod
@@ -80,24 +80,24 @@ class SimpleProjectItemEvent(ProjectItemEvent):
             case "archived":
                 message = f"Task zarchiwizowany przez: {user_text_mention}."
                 await client.edit_channel(post.id, archived=True)
-                logger.info(f"Post {self.name} archived.")
+                logger.info(f"Post {self.node_id} archived.")
                 return message
             case "restored":
                 message = f"Task przywrócony przez: {user_text_mention}."
                 await client.edit_channel(post.id, archived=False)
-                logger.info(f"Post {self.name} restored.")
+                logger.info(f"Post {self.node_id} restored.")
                 return message
             case "deleted":
                 await client.delete_channel(post.id)
-                logger.info(f"Post {self.name} deleted.")
+                logger.info(f"Post {self.node_id} deleted.")
                 return None
             case _:
                 return None
 
 
 class ProjectItemEditedBody(ProjectItemEvent):
-    def __init__(self, name: str, editor: str, new_body: str):
-        super().__init__(name, editor)
+    def __init__(self, node_id: str, editor: str, new_body: str):
+        super().__init__(node_id, editor)
         self.new_body = new_body
 
     async def process(
@@ -110,14 +110,14 @@ class ProjectItemEditedBody(ProjectItemEvent):
         forum_channel_id: int,
     ) -> str:
         message = f"Opis taska zaktualizowany przez: {user_text_mention}. Nowy opis: \n{self.new_body}"
-        logger.info(f"Post {self.name} body updated.")
+        logger.info(f"Post {self.node_id} body updated.")
 
         return message
 
 
 class ProjectItemEditedAssignees(ProjectItemEvent):
-    def __init__(self, name: str, editor: str, new_assignees: list[str]):
-        super().__init__(name, editor)
+    def __init__(self, node_id: str, editor: str, new_assignees: list[str]):
+        super().__init__(node_id, editor)
         self.new_assignees = new_assignees
 
     async def process(
@@ -142,12 +142,12 @@ class ProjectItemEditedAssignees(ProjectItemEvent):
 
         message = f"Osoby przypisane do taska edytowane, aktualni przypisani: {', '.join(assignee_mentions)}"
         await client.create_message(post.id, message, user_mentions=assignee_discord_ids)
-        logger.info(f"Post {self.name} assignees updated.")
+        logger.info(f"Post {self.node_id} assignees updated.")
 
 
 class ProjectItemEditedTitle(ProjectItemEvent):
-    def __init__(self, name: str, editor: str, new_name: str):
-        super().__init__(name, editor)
+    def __init__(self, node_id: str, editor: str, new_name: str):
+        super().__init__(node_id, editor)
         self.new_title = new_name
 
     async def process(
@@ -160,12 +160,12 @@ class ProjectItemEditedTitle(ProjectItemEvent):
         forum_channel_id: int,
     ) -> None:
         await client.edit_channel(post.id, name=self.new_title)
-        logger.info(f"Post {self.name} title updated to {self.new_title}.")
+        logger.info(f"Post {self.node_id} title updated to {self.new_title}.")
 
 
 class ProjectItemEditedSingleSelect(ProjectItemEvent):
-    def __init__(self, name: str, editor: str, new_value: str, field_name: str):
-        super().__init__(name, editor)
+    def __init__(self, node_id: str, editor: str, new_value: str, field_name: str):
+        super().__init__(node_id, editor)
         self.new_value = new_value
         self.value_type = self.field_name_to_value_type(field_name)
 
@@ -221,7 +221,7 @@ class ProjectItemEditedSingleSelect(ProjectItemEvent):
         current_tag_ids.append(new_tag.id)
 
         await client.edit_channel(post.id, applied_tags=current_tag_ids)
-        logger.info(f"Post {self.name} tag updated to {new_tag_name}.")
+        logger.info(f"Post {self.node_id} tag updated to {new_tag_name}.")
 
 
 class ProjectV2Item(BaseModel):

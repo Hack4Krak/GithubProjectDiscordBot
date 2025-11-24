@@ -50,22 +50,7 @@ class ProjectItemEvent:
 class SimpleProjectItemEvent(ProjectItemEvent):
     def __init__(self, node_id: str, sender: str, action_type: str):
         super().__init__(node_id, sender)
-        self.event_type = self.action_type_to_event_type(action_type)
-
-    @staticmethod
-    def action_type_to_event_type(action_type: str) -> SimpleProjectItemEventType:
-        match action_type:
-            case "created":
-                event_type = SimpleProjectItemEventType.CREATED
-            case "archived":
-                event_type = SimpleProjectItemEventType.ARCHIVED
-            case "restored":
-                event_type = SimpleProjectItemEventType.RESTORED
-            case "deleted":
-                event_type = SimpleProjectItemEventType.DELETED
-            case _:
-                raise ValueError(f"Unknown action type: {action_type}")
-        return event_type
+        self.event_type = SimpleProjectItemEventType(action_type)
 
     async def process(
         self,
@@ -167,24 +152,7 @@ class ProjectItemEditedSingleSelect(ProjectItemEvent):
     def __init__(self, node_id: str, editor: str, new_value: str, field_name: str):
         super().__init__(node_id, editor)
         self.new_value = new_value
-        self.value_type = self.field_name_to_value_type(field_name)
-
-    @staticmethod
-    def field_name_to_value_type(field_name: str) -> SingleSelectType:
-        match field_name:
-            case "Status":
-                value_type = SingleSelectType.STATUS
-            case "Priority":
-                value_type = SingleSelectType.PRIORITY
-            case "Size":
-                value_type = SingleSelectType.SIZE
-            case "Iteration":
-                value_type = SingleSelectType.ITERATION
-            case "Section":
-                value_type = SingleSelectType.SECTION
-            case _:
-                raise ValueError(f"Unknown single select field name: {field_name}")
-        return value_type
+        self.value_type = SingleSelectType(field_name)
 
     async def process(
         self,

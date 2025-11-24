@@ -4,7 +4,7 @@ import logging
 from io import StringIO
 from unittest.mock import mock_open, patch
 
-from src.tests.utils import MockShelf, forum_channel_mock, shared_forum_channel_mock  # noqa: F401
+from src.tests.utils import forum_channel_mock, shared_forum_channel_mock  # noqa: F401
 from src.utils import misc
 
 

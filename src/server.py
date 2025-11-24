@@ -62,12 +62,10 @@ async def webhook_endpoint(request: Request) -> JSONResponse:
     verify_signature(signature, body_bytes, app.logger)
 
     body = WebhookRequest.model_validate_json(body_bytes)
-
     if body.projects_v2_item.project_node_id != os.getenv("GITHUB_PROJECT_NODE_ID"):
         raise HTTPException(status_code=400, detail="Invalid project_node_id.")
 
     item_name = await get_item_name(body.projects_v2_item.node_id)
-
     project_item_event = await process_action(body, item_name)
     await app.update_queue.put(project_item_event)
 

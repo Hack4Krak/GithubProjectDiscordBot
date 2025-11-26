@@ -8,7 +8,7 @@ from src.utils.data_types import ProjectItemEvent
 from src.utils.discord_rest_client import fetch_forum_channel, get_post_id
 from src.utils.error import ForumChannelNotFound
 from src.utils.github_api import fetch_item_name
-from src.utils.misc import SharedForumChannel, bot_logger, create_item_link, retrieve_discord_id
+from src.utils.misc import SharedForumChannel, bot_logger, create_item_link, handle_task_exception, retrieve_discord_id
 
 
 async def run(state: asyncio.Queue[ProjectItemEvent], stop_after_one_event: bool = False):
@@ -25,10 +25,11 @@ async def run(state: asyncio.Queue[ProjectItemEvent], stop_after_one_event: bool
         shared_forum_channel = SharedForumChannel(forum_channel)
 
         while True:
-            try:
-                await process_update(client, forum_channel_id, discord_guild_id, shared_forum_channel, state)
-            except Exception as error:
-                bot_logger.error(f"Error processing update: {error}")
+            event = await state.get()
+            update_task = asyncio.create_task(
+                process_update(client, forum_channel_id, discord_guild_id, shared_forum_channel, event)
+            )
+            update_task.add_done_callback(lambda task: handle_task_exception(task, "Error processing update:"))
             if stop_after_one_event:
                 break
 
@@ -38,9 +39,8 @@ async def process_update(
     forum_channel_id: int,
     discord_guild_id: int,
     shared_forum_channel: SharedForumChannel,
-    state: asyncio.Queue[ProjectItemEvent],
+    event: ProjectItemEvent,
 ):
-    event = await state.get()
     bot_logger.info(f"Processing event for item: {event.node_id}")
 
     post_id_or_post = await get_post_id(event.node_id, discord_guild_id, forum_channel_id, client)

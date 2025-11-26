@@ -21,7 +21,7 @@ from src.tests.utils import (  # noqa: F401 ruff recognizes fixture import as un
 from src.utils.signature_verification import generate_signature
 
 
-@patch("src.utils.discord_rest_client.fetch_item_name", new_callable=AsyncMock)
+@patch("src.utils.github_api.send_request", new_callable=AsyncMock)
 @patch.object(Logger, "info")
 @patch.object(RESTClientImpl, "create_message", new_callable=AsyncMock)
 @patch("builtins.open", new_callable=mock_open, read_data="")
@@ -41,7 +41,7 @@ async def test_e2e(
     _mock_open,
     mock_create_message,
     mock_logger,
-    mock_fetch_item_name,
+    mock_send_request,
     rest_client_mock,
     forum_channel_mock,
     full_post_mock,
@@ -61,7 +61,7 @@ async def test_e2e(
     post_id_shelf = MockShelf({})
     mock_shelve_open.return_value = post_id_shelf
     mock_fetch_active_threads.return_value = [full_post_mock]
-    mock_fetch_item_name.return_value = "audacity4"
+    mock_send_request.return_value = {"data": {"node": {"content": {"title": "audacity4"}}}}
     config = Config(app=app, host="127.0.0.1", port=8000, log_level="critical")
     server = Server(config=config)
 

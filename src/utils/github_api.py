@@ -4,6 +4,16 @@ import aiohttp
 from fastapi import HTTPException
 
 
+async def send_request(query: str, variables: dict) -> dict:
+    async with aiohttp.ClientSession() as session:
+        async with session.post(
+            "https://api.github.com/graphql",
+            json={"query": query, "variables": variables},
+            headers={"Authorization": f"Bearer {os.getenv('GITHUB_TOKEN')}"},
+        ) as response:
+            return await response.json()
+
+
 async def fetch_item_name(item_node_id: str) -> str:
     query = """
     query ($id: ID!) {
@@ -27,13 +37,7 @@ async def fetch_item_name(item_node_id: str) -> str:
 
     variables = {"id": item_node_id}
 
-    async with aiohttp.ClientSession() as session:
-        async with session.post(
-            "https://api.github.com/graphql",
-            json={"query": query, "variables": variables},
-            headers={"Authorization": f"Bearer {os.getenv('GITHUB_TOKEN')}"},
-        ) as response:
-            response_body = await response.json()
+    response_body = await send_request(query, variables)
 
     try:
         item_name: str | None = response_body["data"]["node"]["content"]["title"]
@@ -78,13 +82,8 @@ async def fetch_assignees(item_node_id: str) -> list[str]:
 
     variables = {"id": item_node_id}
 
-    async with aiohttp.ClientSession() as session:
-        async with session.post(
-            "https://api.github.com/graphql",
-            json={"query": query, "variables": variables},
-            headers={"Authorization": f"Bearer {os.getenv('GITHUB_TOKEN')}"},
-        ) as response:
-            response_body = await response.json()
+    response_body = await send_request(query, variables)
+
     try:
         assignees_data = response_body["data"]["node"]["content"]["assignees"]["nodes"]
     except TypeError, KeyError, AttributeError:
@@ -114,13 +113,7 @@ async def fetch_single_select_value(item_node_id: str, field_name: str) -> str |
 
     variables = {"id": item_node_id, "field_type": field_name}
 
-    async with aiohttp.ClientSession() as session:
-        async with session.post(
-            "https://api.github.com/graphql",
-            json={"query": query, "variables": variables},
-            headers={"Authorization": f"Bearer {os.getenv('GITHUB_TOKEN')}"},
-        ) as response:
-            response_body = await response.json()
+    response_body = await send_request(query, variables)
 
     try:
         name: str | None = response_body["data"]["node"]["fieldValueByName"]["name"]

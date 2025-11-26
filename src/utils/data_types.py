@@ -61,18 +61,18 @@ class SimpleProjectItemEvent(ProjectItemEvent):
         _shared_forum_channel: SharedForumChannel,
         _forum_channel_id: int,
     ) -> str | None:
-        match self.event_type.value:
-            case "archived":
+        match self.event_type:
+            case SimpleProjectItemEventType.ARCHIVED:
                 message = f"Task zarchiwizowany przez: {user_text_mention}."
                 await client.edit_channel(post.id, archived=True)
                 logger.info(f"Post {self.node_id} archived.")
                 return message
-            case "restored":
+            case SimpleProjectItemEventType.RESTORED:
                 message = f"Task przywrócony przez: {user_text_mention}."
                 await client.edit_channel(post.id, archived=False)
                 logger.info(f"Post {self.node_id} restored.")
                 return message
-            case "deleted":
+            case SimpleProjectItemEventType.DELETED:
                 await client.delete_channel(post.id)
                 logger.info(f"Post {self.node_id} deleted.")
                 return None

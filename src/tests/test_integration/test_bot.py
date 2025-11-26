@@ -1,4 +1,4 @@
-# ruff: noqa: F811
+# ruff: noqa: F811 ruff recognizes fixture use as argument as redefinition
 import asyncio
 from unittest.mock import AsyncMock, mock_open, patch
 
@@ -6,8 +6,13 @@ from hikari import RESTApp
 from hikari.impl import RESTClientImpl
 
 from src.bot import run
-from src.tests.test_unit.test_bot import logger_mock  # noqa: F401
-from src.tests.utils import MockShelf, RestClientContextManagerMock, forum_channel_mock, rest_client_mock  # noqa: F401
+from src.tests.test_unit.test_bot import logger_mock  # noqa: F401 ruff recognizes fixture import as unused
+from src.tests.utils import (  # noqa: F401 ruff recognizes fixture import as unused
+    MockShelf,
+    RestClientContextManagerMock,
+    forum_channel_mock,
+    rest_client_mock,
+)
 from src.utils.data_types import ProjectItemEvent
 
 

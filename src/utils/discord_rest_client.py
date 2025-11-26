@@ -19,7 +19,7 @@ def get_new_tag(new_tag_name: str, available_tags: list[ForumTag]) -> ForumTag |
     return new_tag
 
 
-async def get_post_id(
+async def get_post_id_or_post(
     node_id: str, discord_guild_id: int, forum_channel_id: int, rest_client: RESTClientImpl
 ) -> int | GuildThreadChannel | None:
     with shelve.open(os.getenv("POST_ID_DB_PATH", "post_id.db")) as db:

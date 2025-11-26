@@ -5,7 +5,7 @@ from hikari import GuildPublicThread, RESTApp, TokenType
 from hikari.impl import RESTClientImpl
 
 from src.utils.data_types import ProjectItemEvent
-from src.utils.discord_rest_client import fetch_forum_channel, get_post_id
+from src.utils.discord_rest_client import fetch_forum_channel, get_post_id_or_post
 from src.utils.error import ForumChannelNotFound
 from src.utils.github_api import fetch_item_name
 from src.utils.misc import SharedForumChannel, bot_logger, create_item_link, handle_task_exception, retrieve_discord_id
@@ -43,7 +43,7 @@ async def process_update(
 ):
     bot_logger.info(f"Processing event for item: {event.node_id}")
 
-    post_id_or_post = await get_post_id(event.node_id, discord_guild_id, forum_channel_id, client)
+    post_id_or_post = await get_post_id_or_post(event.node_id, discord_guild_id, forum_channel_id, client)
     author_discord_id = retrieve_discord_id(event.sender)
     user_mentions = [author_discord_id] if author_discord_id else []
     user_text_mention = f"<@{author_discord_id}>" if author_discord_id else "nieznany użytkownik"

@@ -56,18 +56,15 @@ async def test_process_no_post(
     mock_get_post_id.return_value = None
     mock_retrieve_discord_id.return_value = "123456789012345678"
     mock_create_post.return_value = full_post_mock
-    state = asyncio.Queue()
     event = SimpleProjectItemEvent(1, "node_id", "norbiros", "created")
-    await state.put(event)
     await bot.process_update(
         rest_client_mock,
         1,
         1,
         shared_forum_channel_mock,
-        state,
+        event,
     )
 
-    assert state.empty()
     mock_create_post.assert_called_with(
         event, user_text_mention, shared_forum_channel_mock, rest_client_mock, ["123456789012345678"]
     )
@@ -88,18 +85,15 @@ async def test_process_post_id_found(
     mock_get_post_id.return_value = 67
     mock_retrieve_discord_id.return_value = "123456789012345678"
     mock_fetch_channel.return_value = full_post_mock
-    state = asyncio.Queue()
     event = SimpleProjectItemEvent(1, "audacity4", "norbiros", "created")
-    await state.put(event)
     await bot.process_update(
         rest_client_mock,
         1,
         1,
         shared_forum_channel_mock,
-        state,
+        event,
     )
 
-    assert state.empty()
     mock_fetch_channel.assert_called_with(67)
 
 
@@ -119,18 +113,15 @@ async def test_process_post_fetched(
 ):
     mock_get_post_id.return_value = full_post_mock
     mock_retrieve_discord_id.return_value = "123456789012345678"
-    state = asyncio.Queue()
     event = SimpleProjectItemEvent(1, "audacity4", "norbiros", "created")
-    await state.put(event)
     await bot.process_update(
         rest_client_mock,
         1,
         1,
         shared_forum_channel_mock,
-        state,
+        event,
     )
 
-    assert state.empty()
     mock_fetch_channel.assert_not_called()
     mock_create_post.assert_not_called()
 
@@ -149,18 +140,15 @@ async def test_process_post_not_guild_public_thread(
 ):
     mock_get_post_id.return_value = post_mock
     mock_retrieve_discord_id.return_value = "123456789012345678"
-    state = asyncio.Queue()
     event = SimpleProjectItemEvent(1, "audacity4", "norbiros", "created")
-    await state.put(event)
     await bot.process_update(
         rest_client_mock,
         1,
         1,
         shared_forum_channel_mock,
-        state,
+        event,
     )
 
-    assert state.empty()
     mock_logger_error.assert_called_with("Post with ID 621 is not a GuildPublicThread.")
 
 
@@ -180,19 +168,16 @@ async def test_process_post_created_message(
 ):
     mock_get_post_id.return_value = full_post_mock
     mock_retrieve_discord_id.return_value = "123456789012345678"
-    state = asyncio.Queue()
     event = SimpleProjectItemEvent(1, "audacity4", "norbiros", "archived")
     mock_event_process.return_value = "Test message content"
-    await state.put(event)
     await bot.process_update(
         rest_client_mock,
         1,
         1,
         shared_forum_channel_mock,
-        state,
+        event,
     )
 
-    assert state.empty()
     mock_create_message.assert_called_with(621, "Test message content", user_mentions=["123456789012345678"])
 
 
@@ -214,9 +199,10 @@ async def test_bot_run(
     mock_restapp_acquire.return_value = RestClientContextManagerMock(rest_client_mock)
     mock_fetch_forum_channel.return_value = forum_channel_mock
     state = asyncio.Queue()
+    await state.put("event")
 
     await bot.run(state, stop_after_one_event=True)
-    mock_process_update.assert_called_with(rest_client_mock, 1, 2, ANY, state)
+    mock_process_update.assert_called_with(rest_client_mock, 1, 2, ANY, "event")
 
 
 @patch("src.bot.fetch_forum_channel", new_callable=AsyncMock)
@@ -239,7 +225,7 @@ async def test_bot_run_forum_channel_is_none(
         await bot.run(state, stop_after_one_event=True)
 
 
-@patch.object(logging.Logger, "error")
+@patch("src.bot.bot_logger.error")
 @patch("src.bot.process_update", new_callable=AsyncMock)
 @patch("src.bot.fetch_forum_channel", new_callable=AsyncMock)
 @patch.object(RESTApp, "acquire")
@@ -260,6 +246,15 @@ async def test_bot_run_exception_during_process(
     mock_fetch_forum_channel.return_value = forum_channel_mock
     mock_process_update.side_effect = Exception("Some error occurred")
     state = asyncio.Queue()
+    await state.put("event")
 
     await bot.run(state, stop_after_one_event=True)
-    mock_logger_error.assert_called_with("Error processing update: Some error occurred")
+    for _ in range(500):  # up to ~0.5 seconds total
+        try:
+            mock_logger_error.assert_called_with("Error processing update: Some error occurred")
+            break
+        except AssertionError:
+            pass
+        await asyncio.sleep(0.001)
+    else:
+        pytest.fail("Expected log 'Error processing update: Some error occurred' not found in output")

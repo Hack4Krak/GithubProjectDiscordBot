@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import os
 
@@ -29,6 +30,16 @@ def create_item_link(item_id: int) -> str:
     organization_name = os.getenv("GITHUB_ORGANIZATION_NAME", "my-org")
     project_number = os.getenv("GITHUB_PROJECT_NUMBER", "1")
     return f"https://github.com/orgs/{organization_name}/projects/{project_number}?pane=issue&item_id={item_id}"
+
+
+def handle_task_exception(task: asyncio.Task, error_message: str):
+    try:
+        exception = task.exception()
+    except asyncio.CancelledError:
+        return
+
+    if exception:
+        bot_logger.error(f"{error_message} {exception}")
 
 
 class BotPrefixFilter(logging.Filter):

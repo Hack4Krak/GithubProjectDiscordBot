@@ -53,5 +53,15 @@ async def test_basic_event_only_creation(
     mock_fetch_item_name2.return_value = "audacity4"
     update_queue = asyncio.Queue()
     await update_queue.put(ProjectItemEvent(item_id=123, node_id="node_id", sender="test_sender"))
+
     await run(update_queue, stop_after_one_event=True)
-    mock_create_forum_post.assert_called()
+
+    for _ in range(999):  # up to ~1 seconds total
+        try:
+            mock_create_forum_post.assert_called()
+            break
+        except AssertionError:
+            pass
+        await asyncio.sleep(0.001)
+    else:
+        mock_create_forum_post.assert_called()

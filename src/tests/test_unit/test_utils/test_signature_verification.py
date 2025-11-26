@@ -1,11 +1,11 @@
-# ruff: noqa: F811
+# ruff: noqa: F811 ruff recognizes fixture use as argument as redefinition
 from logging import Logger
 from unittest.mock import patch
 
 import pytest
 from fastapi import HTTPException
 
-from src.tests.utils import logger_mock  # noqa: F401
+from src.tests.utils import logger_mock  # noqa: F401 ruff recognizes fixture import as unused
 from src.utils import signature_verification
 
 

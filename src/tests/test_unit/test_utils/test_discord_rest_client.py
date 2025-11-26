@@ -1,10 +1,15 @@
-# ruff: noqa: F811
+# ruff: noqa: F811 ruff recognizes fixture use as argument as redefinition
 from unittest.mock import AsyncMock, patch
 
 from hikari import ForumTag, Snowflake
 from hikari.impl import RESTClientImpl
 
-from src.tests.utils import MockShelf, forum_channel_mock, post_mock, rest_client_mock  # noqa: F401
+from src.tests.utils import (  # noqa: F401 ruff recognizes fixture import as unused
+    MockShelf,
+    forum_channel_mock,
+    post_mock,
+    rest_client_mock,
+)
 from src.utils import discord_rest_client
 
 

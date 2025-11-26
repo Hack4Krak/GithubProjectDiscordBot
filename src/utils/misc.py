@@ -38,3 +38,7 @@ def get_bot_logger() -> logging.Logger:
         logger.addFilter(BotPrefixFilter())
 
     return logger
+
+
+server_logger = logging.getLogger("uvicorn.error")
+bot_logger = get_bot_logger()

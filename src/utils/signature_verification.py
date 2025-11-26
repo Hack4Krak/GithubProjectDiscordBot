@@ -1,15 +1,16 @@
 import hashlib
 import hmac
 import os
-from logging import Logger
 
 from fastapi import HTTPException
 
+from src.utils.misc import server_logger
 
-def verify_signature(signature: str | None, body_bytes: bytes, logger: Logger) -> None:
+
+def verify_signature(signature: str | None, body_bytes: bytes) -> None:
     secret = os.getenv("GITHUB_WEBHOOK_SECRET", "")
     if not secret:
-        logger.warning("GITHUB_WEBHOOK_SECRET is not set; skipping signature verification.")
+        server_logger.warning("GITHUB_WEBHOOK_SECRET is not set; skipping signature verification.")
         return
     if signature:
         correct_signature = verify_secret(secret, body_bytes, signature)

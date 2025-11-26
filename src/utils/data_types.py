@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from enum import Enum
-from logging import Logger
 from typing import Literal
 
 from hikari import ForumTag, GuildForumChannel, GuildPublicThread
@@ -10,7 +9,7 @@ from pydantic_core import PydanticCustomError
 
 from src.utils.discord_rest_client import fetch_forum_channel, get_new_tag
 from src.utils.error import ForumChannelNotFound
-from src.utils.misc import SharedForumChannel, retrieve_discord_id
+from src.utils.misc import SharedForumChannel, bot_logger, retrieve_discord_id
 
 
 class SimpleProjectItemEventType(Enum):
@@ -38,7 +37,6 @@ class ProjectItemEvent:
         user_text_mention: str,
         post: GuildPublicThread,
         client: RESTClientImpl,
-        logger: Logger,
         shared_forum_channel: SharedForumChannel,
         forum_channel_id: int,
     ) -> str | GuildForumChannel | None:
@@ -57,7 +55,6 @@ class SimpleProjectItemEvent(ProjectItemEvent):
         user_text_mention: str,
         post: GuildPublicThread,
         client: RESTClientImpl,
-        logger: Logger,
         _shared_forum_channel: SharedForumChannel,
         _forum_channel_id: int,
     ) -> str | None:
@@ -65,16 +62,16 @@ class SimpleProjectItemEvent(ProjectItemEvent):
             case SimpleProjectItemEventType.ARCHIVED:
                 message = f"Task zarchiwizowany przez: {user_text_mention}."
                 await client.edit_channel(post.id, archived=True)
-                logger.info(f"Post {self.node_id} archived.")
+                bot_logger.info(f"Post {self.node_id} archived.")
                 return message
             case SimpleProjectItemEventType.RESTORED:
                 message = f"Task przywrócony przez: {user_text_mention}."
                 await client.edit_channel(post.id, archived=False)
-                logger.info(f"Post {self.node_id} restored.")
+                bot_logger.info(f"Post {self.node_id} restored.")
                 return message
             case SimpleProjectItemEventType.DELETED:
                 await client.delete_channel(post.id)
-                logger.info(f"Post {self.node_id} deleted.")
+                bot_logger.info(f"Post {self.node_id} deleted.")
                 return None
             case _:
                 return None
@@ -90,12 +87,11 @@ class ProjectItemEditedBody(ProjectItemEvent):
         user_text_mention: str,
         _post: GuildPublicThread,
         client: RESTClientImpl,
-        logger: Logger,
         _shared_forum_channel: SharedForumChannel,
         forum_channel_id: int,
     ) -> str:
         message = f"Opis taska zaktualizowany przez: {user_text_mention}. Nowy opis: \n{self.new_body}"
-        logger.info(f"Post {self.node_id} body updated.")
+        bot_logger.info(f"Post {self.node_id} body updated.")
 
         return message
 
@@ -110,7 +106,6 @@ class ProjectItemEditedAssignees(ProjectItemEvent):
         user_text_mention: str,
         post: GuildPublicThread,
         client: RESTClientImpl,
-        logger: Logger,
         _shared_forum_channel: SharedForumChannel,
         forum_channel_id: int,
     ) -> None:
@@ -127,7 +122,7 @@ class ProjectItemEditedAssignees(ProjectItemEvent):
 
         message = f"Osoby przypisane do taska edytowane, aktualni przypisani: {', '.join(assignee_mentions)}"
         await client.create_message(post.id, message, user_mentions=assignee_discord_ids)
-        logger.info(f"Post {self.node_id} assignees updated.")
+        bot_logger.info(f"Post {self.node_id} assignees updated.")
 
 
 class ProjectItemEditedTitle(ProjectItemEvent):
@@ -140,12 +135,11 @@ class ProjectItemEditedTitle(ProjectItemEvent):
         user_text_mention: str,
         post: GuildPublicThread,
         client: RESTClientImpl,
-        logger: Logger,
         _shared_forum_channel: SharedForumChannel,
         forum_channel_id: int,
     ) -> None:
         await client.edit_channel(post.id, name=self.new_title)
-        logger.info(f"Post {self.node_id} title updated to {self.new_title}.")
+        bot_logger.info(f"Post {self.node_id} title updated to {self.new_title}.")
 
 
 class ProjectItemEditedSingleSelect(ProjectItemEvent):
@@ -159,7 +153,6 @@ class ProjectItemEditedSingleSelect(ProjectItemEvent):
         user_text_mention: str,
         post: GuildPublicThread,
         client: RESTClientImpl,
-        logger: Logger,
         shared_forum_channel: SharedForumChannel,
         forum_channel_id: int,
     ) -> None:
@@ -175,7 +168,7 @@ class ProjectItemEditedSingleSelect(ProjectItemEvent):
         new_tag = get_new_tag(new_tag_name, available_tags)
 
         if new_tag is None:
-            logger.info(f"Tag {new_tag_name} not found, creating new tag.")
+            bot_logger.info(f"Tag {new_tag_name} not found, creating new tag.")
             await client.edit_channel(forum_channel_id, available_tags=[*available_tags, ForumTag(name=new_tag_name)])
             forum_channel = await fetch_forum_channel(client, forum_channel_id)
             if forum_channel is None:
@@ -189,7 +182,7 @@ class ProjectItemEditedSingleSelect(ProjectItemEvent):
         current_tag_ids.append(new_tag.id)
 
         await client.edit_channel(post.id, applied_tags=current_tag_ids)
-        logger.info(f"Post {self.node_id} tag updated to {new_tag_name}.")
+        bot_logger.info(f"Post {self.node_id} tag updated to {new_tag_name}.")
 
 
 class ProjectV2Item(BaseModel):

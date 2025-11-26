@@ -7,7 +7,6 @@ from hikari.impl import RESTClientImpl
 from src.tests.utils import (  # noqa: F401 ruff recognizes fixture import as unused
     forum_channel_mock,
     full_post_mock,
-    logger_mock,
     post_mock,
     rest_client_mock,
     shared_forum_channel_mock,
@@ -24,7 +23,7 @@ from src.utils.data_types import (
 
 @patch.object(RESTClientImpl, "edit_channel")
 async def test_simple_project_item_event_process_archived(
-    mock_edit_channel, user_text_mention, post_mock, rest_client_mock, logger_mock, shared_forum_channel_mock
+    mock_edit_channel, user_text_mention, post_mock, rest_client_mock, shared_forum_channel_mock
 ):
     event = SimpleProjectItemEvent("audacity4", "norbiros", "archived")
     assert (
@@ -32,7 +31,6 @@ async def test_simple_project_item_event_process_archived(
             user_text_mention,
             post_mock,
             rest_client_mock,
-            logger_mock,
             shared_forum_channel_mock,
             shared_forum_channel_mock.forum_channel.id,
         )
@@ -43,7 +41,7 @@ async def test_simple_project_item_event_process_archived(
 
 @patch.object(RESTClientImpl, "edit_channel")
 async def test_simple_project_item_event_process_restored(
-    mock_edit_channel, user_text_mention, post_mock, rest_client_mock, logger_mock, shared_forum_channel_mock
+    mock_edit_channel, user_text_mention, post_mock, rest_client_mock, shared_forum_channel_mock
 ):
     event = SimpleProjectItemEvent("audacity4", "norbiros", "restored")
     assert (
@@ -51,7 +49,6 @@ async def test_simple_project_item_event_process_restored(
             user_text_mention,
             post_mock,
             rest_client_mock,
-            logger_mock,
             shared_forum_channel_mock,
             shared_forum_channel_mock.forum_channel.id,
         )
@@ -62,7 +59,7 @@ async def test_simple_project_item_event_process_restored(
 
 @patch.object(RESTClientImpl, "delete_channel")
 async def test_simple_project_item_event_process_deleted(
-    mock_delete_channel, user_text_mention, post_mock, rest_client_mock, logger_mock, shared_forum_channel_mock
+    mock_delete_channel, user_text_mention, post_mock, rest_client_mock, shared_forum_channel_mock
 ):
     event = SimpleProjectItemEvent("audacity4", "norbiros", "deleted")
     assert (
@@ -70,7 +67,6 @@ async def test_simple_project_item_event_process_deleted(
             user_text_mention,
             post_mock,
             rest_client_mock,
-            logger_mock,
             shared_forum_channel_mock,
             shared_forum_channel_mock.forum_channel.id,
         )
@@ -80,7 +76,7 @@ async def test_simple_project_item_event_process_deleted(
 
 
 async def test_simple_project_item_event_process_created(
-    user_text_mention, post_mock, rest_client_mock, logger_mock, shared_forum_channel_mock
+    user_text_mention, post_mock, rest_client_mock, shared_forum_channel_mock
 ):
     event = SimpleProjectItemEvent("audacity4", "norbiros", "created")
     assert (
@@ -88,7 +84,6 @@ async def test_simple_project_item_event_process_created(
             user_text_mention,
             post_mock,
             rest_client_mock,
-            logger_mock,
             shared_forum_channel_mock,
             shared_forum_channel_mock.forum_channel.id,
         )
@@ -96,16 +91,13 @@ async def test_simple_project_item_event_process_created(
     )
 
 
-async def test_project_item_edited_body(
-    user_text_mention, post_mock, rest_client_mock, logger_mock, shared_forum_channel_mock
-):
+async def test_project_item_edited_body(user_text_mention, post_mock, rest_client_mock, shared_forum_channel_mock):
     event = ProjectItemEditedBody("audacity4", "norbiros", "edited_body")
     assert (
         await event.process(
             user_text_mention,
             post_mock,
             rest_client_mock,
-            logger_mock,
             shared_forum_channel_mock,
             shared_forum_channel_mock.forum_channel.id,
         )
@@ -115,15 +107,12 @@ async def test_project_item_edited_body(
 
 @patch.object(RESTClientImpl, "create_message")
 @patch("builtins.open", new_callable=mock_open, read_data="node_id1: 123\nnode_id2: 321\n")
-async def test_project_item_edited_assignees(
-    user_text_mention, post_mock, rest_client_mock, logger_mock, shared_forum_channel_mock
-):
+async def test_project_item_edited_assignees(user_text_mention, post_mock, rest_client_mock, shared_forum_channel_mock):
     event = ProjectItemEditedAssignees("audacity4", "norbiros", ["node_id1", "node_id2"])
     await event.process(
         user_text_mention,
         post_mock,
         rest_client_mock,
-        logger_mock,
         shared_forum_channel_mock,
         shared_forum_channel_mock.forum_channel.id,
     )
@@ -138,14 +127,13 @@ async def test_project_item_edited_assignees(
 @patch.object(RESTClientImpl, "create_message")
 @patch("builtins.open", new_callable=mock_open, read_data="")
 async def test_project_item_edited_assignees_not_in_mapping(
-    user_text_mention, post_mock, rest_client_mock, logger_mock, shared_forum_channel_mock
+    user_text_mention, post_mock, rest_client_mock, shared_forum_channel_mock
 ):
     event = ProjectItemEditedAssignees("audacity4", "norbiros", ["node_id1", "node_id2"])
     await event.process(
         user_text_mention,
         post_mock,
         rest_client_mock,
-        logger_mock,
         shared_forum_channel_mock,
         shared_forum_channel_mock.forum_channel.id,
     )
@@ -158,14 +146,13 @@ async def test_project_item_edited_assignees_not_in_mapping(
 @patch.object(RESTClientImpl, "create_message")
 @patch("builtins.open", new_callable=mock_open, read_data="")
 async def test_project_item_edited_assignees_no_assignees(
-    user_text_mention, post_mock, rest_client_mock, logger_mock, shared_forum_channel_mock
+    user_text_mention, post_mock, rest_client_mock, shared_forum_channel_mock
 ):
     event = ProjectItemEditedAssignees("audacity4", "norbiros", [])
     await event.process(
         user_text_mention,
         post_mock,
         rest_client_mock,
-        logger_mock,
         shared_forum_channel_mock,
         shared_forum_channel_mock.forum_channel.id,
     )
@@ -179,14 +166,13 @@ async def test_project_item_edited_assignees_no_assignees(
 
 @patch.object(RESTClientImpl, "edit_channel")
 async def test_project_item_edited_title(
-    mock_edit_channel, user_text_mention, post_mock, rest_client_mock, logger_mock, shared_forum_channel_mock
+    mock_edit_channel, user_text_mention, post_mock, rest_client_mock, shared_forum_channel_mock
 ):
     event = ProjectItemEditedTitle("audacity4", "norbiros", "edited_title")
     await event.process(
         user_text_mention,
         post_mock,
         rest_client_mock,
-        logger_mock,
         shared_forum_channel_mock,
         shared_forum_channel_mock.forum_channel.id,
     )
@@ -199,7 +185,6 @@ async def test_project_item_edited_single_select_existing_tag(
     user_text_mention,
     full_post_mock,
     rest_client_mock,
-    logger_mock,
     shared_forum_channel_mock,
     forum_channel_mock,
 ):
@@ -208,7 +193,6 @@ async def test_project_item_edited_single_select_existing_tag(
         user_text_mention,
         full_post_mock,
         rest_client_mock,
-        logger_mock,
         shared_forum_channel_mock,
         forum_channel_mock.id,
     )
@@ -226,7 +210,6 @@ async def test_project_item_edited_single_select_tag_unavailable(
     user_text_mention,
     full_post_mock,
     rest_client_mock,
-    logger_mock,
     shared_forum_channel_mock,
     forum_channel_mock,
 ):
@@ -239,7 +222,6 @@ async def test_project_item_edited_single_select_tag_unavailable(
         user_text_mention,
         full_post_mock,
         rest_client_mock,
-        logger_mock,
         shared_forum_channel_mock,
         forum_channel_mock.id,
     )

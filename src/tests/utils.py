@@ -1,5 +1,4 @@
 import datetime
-import logging
 
 import pytest
 from hikari import (
@@ -98,11 +97,6 @@ def forum_channel_mock():
         default_reaction_emoji_id=None,
         default_reaction_emoji_name=None,
     )
-
-
-@pytest.fixture
-def logger_mock():
-    return logging.getLogger("uvicorn.error")
 
 
 @pytest.fixture

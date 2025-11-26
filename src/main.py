@@ -1,5 +1,4 @@
 import asyncio
-import logging
 import os
 from contextlib import asynccontextmanager
 
@@ -8,6 +7,7 @@ import uvicorn
 from fastapi import FastAPI
 
 from src.bot import run
+from src.utils.misc import server_logger
 
 
 def main():
@@ -20,9 +20,8 @@ def main():
 async def lifespan(app: FastAPI):
     # startup
     app.update_queue = asyncio.Queue()
-    app.logger = logging.getLogger("uvicorn.error")
     task = asyncio.create_task(run(app.update_queue))
-    task.add_done_callback(lambda task: handle_task_exception(task, app))
+    task.add_done_callback(handle_task_exception)
     yield
     # shutdown
     task.cancel()
@@ -32,14 +31,14 @@ async def lifespan(app: FastAPI):
         pass
 
 
-def handle_task_exception(task: asyncio.Task, app: FastAPI):
+def handle_task_exception(task: asyncio.Task):
     try:
         exception = task.exception()
     except asyncio.CancelledError:
         return
 
     if exception:
-        app.logger.error(f"Bot task crashed: {exception}")
+        server_logger.error(f"Bot task crashed: {exception}")
 
 
 if __name__ == "__main__":

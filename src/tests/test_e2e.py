@@ -80,7 +80,7 @@ async def test_e2e(
     payload = {
         "action": "edited",
         "sender": {"node_id": "github_user"},
-        "projects_v2_item": {"node_id": "item123", "project_node_id": "fake_project_id"},
+        "projects_v2_item": {"id": 123, "node_id": "item123", "project_node_id": "fake_project_id"},
         "changes": {"body": {"to": "Updated description"}},
     }
     signature = generate_signature("some_secret", json.dumps(payload).encode())

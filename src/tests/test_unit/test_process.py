@@ -25,7 +25,7 @@ from src.utils.data_types import (
 async def test_simple_project_item_event_process_archived(
     mock_edit_channel, user_text_mention, post_mock, rest_client_mock, shared_forum_channel_mock
 ):
-    event = SimpleProjectItemEvent("audacity4", "norbiros", "archived")
+    event = SimpleProjectItemEvent(1, "audacity4", "norbiros", "archived")
     assert (
         await event.process(
             user_text_mention,
@@ -43,7 +43,7 @@ async def test_simple_project_item_event_process_archived(
 async def test_simple_project_item_event_process_restored(
     mock_edit_channel, user_text_mention, post_mock, rest_client_mock, shared_forum_channel_mock
 ):
-    event = SimpleProjectItemEvent("audacity4", "norbiros", "restored")
+    event = SimpleProjectItemEvent(1, "audacity4", "norbiros", "restored")
     assert (
         await event.process(
             user_text_mention,
@@ -61,7 +61,7 @@ async def test_simple_project_item_event_process_restored(
 async def test_simple_project_item_event_process_deleted(
     mock_delete_channel, user_text_mention, post_mock, rest_client_mock, shared_forum_channel_mock
 ):
-    event = SimpleProjectItemEvent("audacity4", "norbiros", "deleted")
+    event = SimpleProjectItemEvent(1, "audacity4", "norbiros", "deleted")
     assert (
         await event.process(
             user_text_mention,
@@ -78,7 +78,7 @@ async def test_simple_project_item_event_process_deleted(
 async def test_simple_project_item_event_process_created(
     user_text_mention, post_mock, rest_client_mock, shared_forum_channel_mock
 ):
-    event = SimpleProjectItemEvent("audacity4", "norbiros", "created")
+    event = SimpleProjectItemEvent(1, "audacity4", "norbiros", "created")
     assert (
         await event.process(
             user_text_mention,
@@ -92,7 +92,7 @@ async def test_simple_project_item_event_process_created(
 
 
 async def test_project_item_edited_body(user_text_mention, post_mock, rest_client_mock, shared_forum_channel_mock):
-    event = ProjectItemEditedBody("audacity4", "norbiros", "edited_body")
+    event = ProjectItemEditedBody(1, "audacity4", "norbiros", "edited_body")
     assert (
         await event.process(
             user_text_mention,
@@ -108,7 +108,7 @@ async def test_project_item_edited_body(user_text_mention, post_mock, rest_clien
 @patch.object(RESTClientImpl, "create_message")
 @patch("builtins.open", new_callable=mock_open, read_data="node_id1: 123\nnode_id2: 321\n")
 async def test_project_item_edited_assignees(user_text_mention, post_mock, rest_client_mock, shared_forum_channel_mock):
-    event = ProjectItemEditedAssignees("audacity4", "norbiros", ["node_id1", "node_id2"])
+    event = ProjectItemEditedAssignees(1, "audacity4", "norbiros", ["node_id1", "node_id2"])
     await event.process(
         user_text_mention,
         post_mock,
@@ -129,7 +129,7 @@ async def test_project_item_edited_assignees(user_text_mention, post_mock, rest_
 async def test_project_item_edited_assignees_not_in_mapping(
     user_text_mention, post_mock, rest_client_mock, shared_forum_channel_mock
 ):
-    event = ProjectItemEditedAssignees("audacity4", "norbiros", ["node_id1", "node_id2"])
+    event = ProjectItemEditedAssignees(1, "audacity4", "norbiros", ["node_id1", "node_id2"])
     await event.process(
         user_text_mention,
         post_mock,
@@ -148,7 +148,7 @@ async def test_project_item_edited_assignees_not_in_mapping(
 async def test_project_item_edited_assignees_no_assignees(
     user_text_mention, post_mock, rest_client_mock, shared_forum_channel_mock
 ):
-    event = ProjectItemEditedAssignees("audacity4", "norbiros", [])
+    event = ProjectItemEditedAssignees(1, "audacity4", "norbiros", [])
     await event.process(
         user_text_mention,
         post_mock,
@@ -168,7 +168,7 @@ async def test_project_item_edited_assignees_no_assignees(
 async def test_project_item_edited_title(
     mock_edit_channel, user_text_mention, post_mock, rest_client_mock, shared_forum_channel_mock
 ):
-    event = ProjectItemEditedTitle("audacity4", "norbiros", "edited_title")
+    event = ProjectItemEditedTitle(1, "audacity4", "norbiros", "edited_title")
     await event.process(
         user_text_mention,
         post_mock,
@@ -188,7 +188,7 @@ async def test_project_item_edited_single_select_existing_tag(
     shared_forum_channel_mock,
     forum_channel_mock,
 ):
-    event = ProjectItemEditedSingleSelect("audacity4", "norbiros", "smol", "Size")
+    event = ProjectItemEditedSingleSelect(1, "audacity4", "norbiros", "smol", "Size")
     await event.process(
         user_text_mention,
         full_post_mock,
@@ -213,7 +213,7 @@ async def test_project_item_edited_single_select_tag_unavailable(
     shared_forum_channel_mock,
     forum_channel_mock,
 ):
-    event = ProjectItemEditedSingleSelect("audacity4", "norbiros", "medium", "Size")
+    event = ProjectItemEditedSingleSelect(1, "audacity4", "norbiros", "medium", "Size")
     new_tag = ForumTag(id=Snowflake(0), name="Size: medium")
     mock_fetch_forum_channel.return_value = forum_channel_mock
     mock_get_new_tag.side_effect = [None, new_tag]

@@ -77,7 +77,9 @@ async def process_action(body: WebhookRequest) -> ProjectItemEvent:
         return await process_edition(body)
     else:
         try:
-            return SimpleProjectItemEvent(body.projects_v2_item.node_id, body.sender.node_id, body.action)
+            return SimpleProjectItemEvent(
+                body.projects_v2_item.item_id, body.projects_v2_item.node_id, body.sender.node_id, body.action
+            )
         except ValueError as error:
             raise HTTPException(status_code=400, detail="Unsupported action.") from error
 
@@ -88,9 +90,10 @@ async def process_edition(
     editor = body.sender.node_id
     body_changed = body.changes.body
     item_node_id = body.projects_v2_item.node_id
+    item_id = body.projects_v2_item.item_id
 
     if body_changed is not None:
-        project_item_edited = ProjectItemEditedBody(item_node_id, editor, body_changed.to)
+        project_item_edited = ProjectItemEditedBody(item_id, item_node_id, editor, body_changed.to)
         return project_item_edited
 
     field_changed = body.changes.field_value
@@ -101,11 +104,11 @@ async def process_edition(
     match field_changed.field_type:
         case "assignees":
             new_assignees = await fetch_assignees(body.projects_v2_item.node_id)
-            project_item_edited = ProjectItemEditedAssignees(item_node_id, editor, new_assignees)
+            project_item_edited = ProjectItemEditedAssignees(item_id, item_node_id, editor, new_assignees)
             return project_item_edited
         case "title":
             new_title = await fetch_item_name(body.projects_v2_item.node_id)
-            project_item_edited = ProjectItemEditedTitle(item_node_id, editor, new_title)
+            project_item_edited = ProjectItemEditedTitle(item_id, item_node_id, editor, new_title)
             return project_item_edited
         case "single_select":
             new_value = field_changed.to.name
@@ -113,11 +116,13 @@ async def process_edition(
             if new_value is None:
                 new_value = await fetch_single_select_value(body.projects_v2_item.node_id, field_name)
             try:
-                project_item_edited = ProjectItemEditedSingleSelect(item_node_id, editor, new_value, field_name)
+                project_item_edited = ProjectItemEditedSingleSelect(
+                    item_id, item_node_id, editor, new_value, field_name
+                )
             except ValueError as error:
                 raise HTTPException(status_code=400, detail="Unsupported single select field.") from error
             return project_item_edited
         case "iteration":
             new_value = field_changed.to.title
-            project_item_edited = ProjectItemEditedSingleSelect(item_node_id, editor, new_value, "Iteration")
+            project_item_edited = ProjectItemEditedSingleSelect(item_id, item_node_id, editor, new_value, "Iteration")
             return project_item_edited

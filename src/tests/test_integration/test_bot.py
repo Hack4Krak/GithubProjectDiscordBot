@@ -41,7 +41,7 @@ async def test_basic_event_only_creation(
     rest_client_mock,
     forum_channel_mock,
 ):
-    mock_os_getenv.side_effect = ["some_token", 1, 2, "some_path", "db-path.db"]
+    mock_os_getenv.side_effect = ["some_token", 1, 2, "some_path", "db-path.db", "my-org", "1"]
     mock_restapp_acquire.return_value = RestClientContextManagerMock(rest_client_mock)
     mock_fetch_channel.return_value = forum_channel_mock
     mock_fetch_active_threads.return_value = []
@@ -52,6 +52,6 @@ async def test_basic_event_only_creation(
     mock_fetch_item_name.return_value = "audacity4"
     mock_fetch_item_name2.return_value = "audacity4"
     update_queue = asyncio.Queue()
-    await update_queue.put(ProjectItemEvent(node_id="node_id", sender="test_sender"))
+    await update_queue.put(ProjectItemEvent(item_id=123, node_id="node_id", sender="test_sender"))
     await run(update_queue, stop_after_one_event=True)
     mock_create_forum_post.assert_called()

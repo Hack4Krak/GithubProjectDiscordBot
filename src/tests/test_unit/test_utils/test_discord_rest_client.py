@@ -53,7 +53,7 @@ async def test_get_post_id_exist_in_db(mock_shelve_open, rest_client_mock):
     mock_db = {"node_id": 621}
     mock_shelve_open.return_value = MockShelf(mock_db)
 
-    assert await discord_rest_client.get_post_id("node_id", 1, 1, rest_client_mock) == 621
+    assert await discord_rest_client.get_post_id_or_post("node_id", 1, 1, rest_client_mock) == 621
 
 
 @patch("src.utils.discord_rest_client.fetch_item_name", new_callable=AsyncMock)
@@ -67,7 +67,7 @@ async def test_get_post_id_active_thread(
     mock_fetch_active_threads.return_value = [post_mock]
     mock_fetch_item_name.return_value = "audacity4"
 
-    assert await discord_rest_client.get_post_id("node_id", 1, 1, rest_client_mock) == post_mock
+    assert await discord_rest_client.get_post_id_or_post("node_id", 1, 1, rest_client_mock) == post_mock
     assert mock_shelf.get("audacity4") == 621
 
 
@@ -89,7 +89,7 @@ async def test_get_post_id_archived_thread(
     mock_fetch_public_archived_threads.return_value = [post_mock]
     mock_fetch_item_name.return_value = "audacity4"
 
-    assert await discord_rest_client.get_post_id("node_id", 1, 1, rest_client_mock) == post_mock
+    assert await discord_rest_client.get_post_id_or_post("node_id", 1, 1, rest_client_mock) == post_mock
     assert mock_shelf.get("audacity4") == 621
 
 
@@ -111,5 +111,5 @@ async def test_get_post_id_none(
     mock_fetch_public_archived_threads.return_value = []
     mock_fetch_item_name.return_value = "audacity4"
 
-    assert await discord_rest_client.get_post_id("node_id", 1, 1, rest_client_mock) is None
+    assert await discord_rest_client.get_post_id_or_post("node_id", 1, 1, rest_client_mock) is None
     assert mock_shelf.get("audacity4") is None

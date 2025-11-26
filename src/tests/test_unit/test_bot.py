@@ -43,9 +43,9 @@ async def test_create_post(
 
 @patch("src.bot.create_post", new_callable=AsyncMock)
 @patch("src.bot.retrieve_discord_id")
-@patch("src.bot.get_post_id", new_callable=AsyncMock)
+@patch("src.bot.get_post_id_or_post", new_callable=AsyncMock)
 async def test_process_no_post(
-    mock_get_post_id,
+    mock_get_post_id_or_post,
     mock_retrieve_discord_id,
     mock_create_post,
     rest_client_mock,
@@ -53,7 +53,7 @@ async def test_process_no_post(
     full_post_mock,
     user_text_mention,
 ):
-    mock_get_post_id.return_value = None
+    mock_get_post_id_or_post.return_value = None
     mock_retrieve_discord_id.return_value = "123456789012345678"
     mock_create_post.return_value = full_post_mock
     event = SimpleProjectItemEvent(1, "node_id", "norbiros", "created")
@@ -72,9 +72,9 @@ async def test_process_no_post(
 
 @patch.object(RESTClientImpl, "fetch_channel", new_callable=AsyncMock)
 @patch("src.bot.retrieve_discord_id")
-@patch("src.bot.get_post_id", new_callable=AsyncMock)
+@patch("src.bot.get_post_id_or_post", new_callable=AsyncMock)
 async def test_process_post_id_found(
-    mock_get_post_id,
+    mock_get_post_id_or_post,
     mock_retrieve_discord_id,
     mock_fetch_channel,
     rest_client_mock,
@@ -82,7 +82,7 @@ async def test_process_post_id_found(
     full_post_mock,
     user_text_mention,
 ):
-    mock_get_post_id.return_value = 67
+    mock_get_post_id_or_post.return_value = 67
     mock_retrieve_discord_id.return_value = "123456789012345678"
     mock_fetch_channel.return_value = full_post_mock
     event = SimpleProjectItemEvent(1, "audacity4", "norbiros", "created")
@@ -100,9 +100,9 @@ async def test_process_post_id_found(
 @patch("src.bot.create_post", new_callable=AsyncMock)
 @patch.object(RESTClientImpl, "fetch_channel", new_callable=AsyncMock)
 @patch("src.bot.retrieve_discord_id")
-@patch("src.bot.get_post_id", new_callable=AsyncMock)
+@patch("src.bot.get_post_id_or_post", new_callable=AsyncMock)
 async def test_process_post_fetched(
-    mock_get_post_id,
+    mock_get_post_id_or_post,
     mock_retrieve_discord_id,
     mock_fetch_channel,
     mock_create_post,
@@ -111,7 +111,7 @@ async def test_process_post_fetched(
     full_post_mock,
     user_text_mention,
 ):
-    mock_get_post_id.return_value = full_post_mock
+    mock_get_post_id_or_post.return_value = full_post_mock
     mock_retrieve_discord_id.return_value = "123456789012345678"
     event = SimpleProjectItemEvent(1, "audacity4", "norbiros", "created")
     await bot.process_update(
@@ -128,9 +128,9 @@ async def test_process_post_fetched(
 
 @patch.object(logging.Logger, "error")
 @patch("src.bot.retrieve_discord_id")
-@patch("src.bot.get_post_id", new_callable=AsyncMock)
+@patch("src.bot.get_post_id_or_post", new_callable=AsyncMock)
 async def test_process_post_not_guild_public_thread(
-    mock_get_post_id,
+    mock_get_post_id_or_post,
     mock_retrieve_discord_id,
     mock_logger_error,
     rest_client_mock,
@@ -138,7 +138,7 @@ async def test_process_post_not_guild_public_thread(
     post_mock,
     user_text_mention,
 ):
-    mock_get_post_id.return_value = post_mock
+    mock_get_post_id_or_post.return_value = post_mock
     mock_retrieve_discord_id.return_value = "123456789012345678"
     event = SimpleProjectItemEvent(1, "audacity4", "norbiros", "created")
     await bot.process_update(
@@ -155,9 +155,9 @@ async def test_process_post_not_guild_public_thread(
 @patch.object(SimpleProjectItemEvent, "process", new_callable=AsyncMock)
 @patch.object(RESTClientImpl, "create_message", new_callable=AsyncMock)
 @patch("src.bot.retrieve_discord_id")
-@patch("src.bot.get_post_id", new_callable=AsyncMock)
+@patch("src.bot.get_post_id_or_post", new_callable=AsyncMock)
 async def test_process_post_created_message(
-    mock_get_post_id,
+    mock_get_post_id_or_post,
     mock_retrieve_discord_id,
     mock_create_message,
     mock_event_process,
@@ -166,7 +166,7 @@ async def test_process_post_created_message(
     full_post_mock,
     user_text_mention,
 ):
-    mock_get_post_id.return_value = full_post_mock
+    mock_get_post_id_or_post.return_value = full_post_mock
     mock_retrieve_discord_id.return_value = "123456789012345678"
     event = SimpleProjectItemEvent(1, "audacity4", "norbiros", "archived")
     mock_event_process.return_value = "Test message content"

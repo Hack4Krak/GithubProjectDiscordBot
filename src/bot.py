@@ -8,7 +8,7 @@ from src.utils.data_types import ProjectItemEvent
 from src.utils.discord_rest_client import fetch_forum_channel, get_post_id
 from src.utils.error import ForumChannelNotFound
 from src.utils.github_api import fetch_item_name
-from src.utils.misc import SharedForumChannel, bot_logger, retrieve_discord_id
+from src.utils.misc import SharedForumChannel, bot_logger, create_item_link, retrieve_discord_id
 
 
 async def run(state: asyncio.Queue[ProjectItemEvent], stop_after_one_event: bool = False):
@@ -76,7 +76,10 @@ async def create_post(
 ) -> GuildPublicThread:
     bot_logger.info(f"Post not found, creating new post for item: {event.node_id}")
     item_name = await fetch_item_name(event.node_id)
-    message = f"Nowy task stworzony {item_name} przez: {user_text_mention}"
+    message = (
+        f"Nowy task stworzony {item_name} przez: {user_text_mention}.\n"
+        f" Link do taska: {create_item_link(event.item_id)}"
+    )
     async with shared_forum_channel.lock.reader_lock:
         return await client.create_forum_post(
             shared_forum_channel.forum_channel,

@@ -33,8 +33,8 @@ async def test_create_post(
     user_text_mention,
 ):
     mock_fetch_item_name.return_value = "audacity4"
-    message = f"Nowy task stworzony audacity4 przez: {user_text_mention}"
-    event = SimpleProjectItemEvent("audacity4", "norbiros", "created")
+    message = f"Nowy task stworzony audacity4 przez: {user_text_mention}.\n Link do taska: https://github.com/orgs/my-org/projects/1?pane=issue&item_id=1"
+    event = SimpleProjectItemEvent(1, "audacity4", "norbiros", "created")
     await bot.create_post(event, user_text_mention, shared_forum_channel_mock, rest_client_mock, [])
     mock_create_forum_post.assert_called_with(
         shared_forum_channel_mock.forum_channel, event.node_id, message, auto_archive_duration=10080, user_mentions=[]
@@ -57,7 +57,7 @@ async def test_process_no_post(
     mock_retrieve_discord_id.return_value = "123456789012345678"
     mock_create_post.return_value = full_post_mock
     state = asyncio.Queue()
-    event = SimpleProjectItemEvent("node_id", "norbiros", "created")
+    event = SimpleProjectItemEvent(1, "node_id", "norbiros", "created")
     await state.put(event)
     await bot.process_update(
         rest_client_mock,
@@ -89,7 +89,7 @@ async def test_process_post_id_found(
     mock_retrieve_discord_id.return_value = "123456789012345678"
     mock_fetch_channel.return_value = full_post_mock
     state = asyncio.Queue()
-    event = SimpleProjectItemEvent("audacity4", "norbiros", "created")
+    event = SimpleProjectItemEvent(1, "audacity4", "norbiros", "created")
     await state.put(event)
     await bot.process_update(
         rest_client_mock,
@@ -120,7 +120,7 @@ async def test_process_post_fetched(
     mock_get_post_id.return_value = full_post_mock
     mock_retrieve_discord_id.return_value = "123456789012345678"
     state = asyncio.Queue()
-    event = SimpleProjectItemEvent("audacity4", "norbiros", "created")
+    event = SimpleProjectItemEvent(1, "audacity4", "norbiros", "created")
     await state.put(event)
     await bot.process_update(
         rest_client_mock,
@@ -150,7 +150,7 @@ async def test_process_post_not_guild_public_thread(
     mock_get_post_id.return_value = post_mock
     mock_retrieve_discord_id.return_value = "123456789012345678"
     state = asyncio.Queue()
-    event = SimpleProjectItemEvent("audacity4", "norbiros", "created")
+    event = SimpleProjectItemEvent(1, "audacity4", "norbiros", "created")
     await state.put(event)
     await bot.process_update(
         rest_client_mock,
@@ -181,7 +181,7 @@ async def test_process_post_created_message(
     mock_get_post_id.return_value = full_post_mock
     mock_retrieve_discord_id.return_value = "123456789012345678"
     state = asyncio.Queue()
-    event = SimpleProjectItemEvent("audacity4", "norbiros", "archived")
+    event = SimpleProjectItemEvent(1, "audacity4", "norbiros", "archived")
     mock_event_process.return_value = "Test message content"
     await state.put(event)
     await bot.process_update(

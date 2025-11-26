@@ -4,7 +4,7 @@ from typing import Literal
 
 from hikari import ForumTag, GuildForumChannel, GuildPublicThread
 from hikari.impl import RESTClientImpl
-from pydantic import BaseModel, ConfigDict, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from pydantic_core import PydanticCustomError
 
 from src.utils.discord_rest_client import fetch_forum_channel, get_new_tag
@@ -29,6 +29,9 @@ class SingleSelectType(Enum):
 
 @dataclass
 class ProjectItemEvent:
+    # Used for appending link to Discord post
+    item_id: int
+    # Used for request to GitHub API
     node_id: str
     sender: str
 
@@ -46,8 +49,8 @@ class ProjectItemEvent:
 
 
 class SimpleProjectItemEvent(ProjectItemEvent):
-    def __init__(self, node_id: str, sender: str, action_type: str):
-        super().__init__(node_id, sender)
+    def __init__(self, item_id: int, node_id: str, sender: str, action_type: str):
+        super().__init__(item_id, node_id, sender)
         self.event_type = SimpleProjectItemEventType(action_type)
 
     async def process(
@@ -78,8 +81,8 @@ class SimpleProjectItemEvent(ProjectItemEvent):
 
 
 class ProjectItemEditedBody(ProjectItemEvent):
-    def __init__(self, node_id: str, editor: str, new_body: str):
-        super().__init__(node_id, editor)
+    def __init__(self, item_id: int, node_id: str, editor: str, new_body: str):
+        super().__init__(item_id, node_id, editor)
         self.new_body = new_body
 
     async def process(
@@ -97,8 +100,8 @@ class ProjectItemEditedBody(ProjectItemEvent):
 
 
 class ProjectItemEditedAssignees(ProjectItemEvent):
-    def __init__(self, node_id: str, editor: str, new_assignees: list[str]):
-        super().__init__(node_id, editor)
+    def __init__(self, item_id: int, node_id: str, editor: str, new_assignees: list[str]):
+        super().__init__(item_id, node_id, editor)
         self.new_assignees = new_assignees
 
     async def process(
@@ -126,8 +129,8 @@ class ProjectItemEditedAssignees(ProjectItemEvent):
 
 
 class ProjectItemEditedTitle(ProjectItemEvent):
-    def __init__(self, node_id: str, editor: str, new_name: str):
-        super().__init__(node_id, editor)
+    def __init__(self, item_id: int, node_id: str, editor: str, new_name: str):
+        super().__init__(item_id, node_id, editor)
         self.new_title = new_name
 
     async def process(
@@ -143,8 +146,8 @@ class ProjectItemEditedTitle(ProjectItemEvent):
 
 
 class ProjectItemEditedSingleSelect(ProjectItemEvent):
-    def __init__(self, node_id: str, editor: str, new_value: str, field_name: str):
-        super().__init__(node_id, editor)
+    def __init__(self, item_id: int, node_id: str, editor: str, new_value: str, field_name: str):
+        super().__init__(item_id, node_id, editor)
         self.new_value = new_value
         self.value_type = SingleSelectType(field_name)
 
@@ -186,8 +189,9 @@ class ProjectItemEditedSingleSelect(ProjectItemEvent):
 
 
 class ProjectV2Item(BaseModel):
-    project_node_id: str
+    item_id: int = Field(alias="id")
     node_id: str
+    project_node_id: str
 
     model_config = ConfigDict(extra="allow")
 

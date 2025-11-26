@@ -24,7 +24,7 @@ def test_missing_body():
 
 def test_github_project_node_id_mismatch():
     payload: dict[str, Any] = {
-        "projects_v2_item": {"project_node_id": "wrong_id", "node_id": "123"},
+        "projects_v2_item": {"id": 123, "project_node_id": "wrong_id", "node_id": "123"},
         "action": "edited",
         "changes": {"field_value": {"field_type": "title", "field_name": "Title"}},
         "sender": {"node_id": "456"},
@@ -48,7 +48,7 @@ def test_github_project_node_id_mismatch():
 @patch("os.getenv")
 def test_edited_action(mock_os_getenv, mock_shelve_open, mock_post_request):
     payload: dict[str, Any] = {
-        "projects_v2_item": {"project_node_id": "123", "node_id": "123"},
+        "projects_v2_item": {"id": 123, "project_node_id": "123", "node_id": "123"},
         "action": "edited",
         "changes": {"field_value": {"field_type": "title", "field_name": "Title"}},
         "sender": {"node_id": "456"},

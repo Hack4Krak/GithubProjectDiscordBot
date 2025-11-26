@@ -25,6 +25,12 @@ def retrieve_discord_id(node_id: str) -> str | None:
         return mapping.get(node_id, None)
 
 
+def create_item_link(item_id: int) -> str:
+    organization_name = os.getenv("GITHUB_ORGANIZATION_NAME", "my-org")
+    project_number = os.getenv("GITHUB_PROJECT_NUMBER", "1")
+    return f"https://github.com/orgs/{organization_name}/projects/{project_number}?pane=issue&item_id={item_id}"
+
+
 class BotPrefixFilter(logging.Filter):
     def filter(self, record: logging.LogRecord) -> bool:
         record.msg = f"[BOT] {record.msg}"

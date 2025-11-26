@@ -16,6 +16,7 @@ from src.utils.data_types import (
     WebhookRequest,
 )
 from src.utils.github_api import fetch_assignees, fetch_item_name, fetch_single_select_value
+from src.utils.misc import server_logger
 from src.utils.signature_verification import verify_signature
 
 app = FastAPI(lifespan=lifespan)
@@ -23,13 +24,13 @@ app = FastAPI(lifespan=lifespan)
 
 @app.exception_handler(StarletteHttpException)
 async def http_exception_handler(_request: Request, exception: StarletteHttpException) -> JSONResponse:
-    app.logger.error(f"HTTP exception occurred: {exception.detail}")
+    server_logger.error(f"HTTP exception occurred: {exception.detail}")
     return JSONResponse(status_code=exception.status_code, content={"detail": exception.detail})
 
 
 @app.exception_handler(ValidationError)
 async def validation_exception_handler(_request: Request, exception: ValidationError) -> JSONResponse:
-    app.logger.error(
+    server_logger.error(
         f"ValidationError occurred: {exception.errors(include_url=False, include_context=False, include_input=False)}"
     )
     try:
@@ -47,7 +48,7 @@ async def validation_exception_handler(_request: Request, exception: ValidationE
 
 @app.exception_handler(Exception)
 async def default_exception_handler(_request: Request, exception: Exception) -> JSONResponse:
-    app.logger.error(f"Unhandled exception occurred: {str(exception)}")
+    server_logger.error(f"Unhandled exception occurred: {str(exception)}")
     return JSONResponse(status_code=500, content={"detail": "Internal server error."})
 
 
@@ -58,7 +59,7 @@ async def webhook_endpoint(request: Request) -> JSONResponse:
         raise HTTPException(status_code=400, detail="Missing request body.")
 
     signature = request.headers.get("X-Hub-Signature-256")
-    verify_signature(signature, body_bytes, app.logger)
+    verify_signature(signature, body_bytes)
 
     body = WebhookRequest.model_validate_json(body_bytes)
     if body.projects_v2_item.project_node_id != os.getenv("GITHUB_PROJECT_NODE_ID"):
@@ -67,7 +68,7 @@ async def webhook_endpoint(request: Request) -> JSONResponse:
     project_item_event = await process_action(body)
     await app.update_queue.put(project_item_event)
 
-    app.logger.info(f"Received webhook event for item: {body.projects_v2_item.node_id}")
+    server_logger.info(f"Received webhook event for item: {body.projects_v2_item.node_id}")
     return JSONResponse(content={"detail": "Successfully received webhook data"})
 
 

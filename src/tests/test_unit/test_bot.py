@@ -12,7 +12,6 @@ from src.tests.utils import (  # noqa: F401 ruff recognizes fixture import as un
     RestClientContextManagerMock,
     forum_channel_mock,
     full_post_mock,
-    logger_mock,
     post_mock,
     rest_client_mock,
     shared_forum_channel_mock,
@@ -29,7 +28,6 @@ from src.utils.error import ForumChannelNotFound
 async def test_create_post(
     mock_create_forum_post,
     mock_fetch_item_name,
-    logger_mock,
     rest_client_mock,
     shared_forum_channel_mock,
     user_text_mention,
@@ -37,7 +35,7 @@ async def test_create_post(
     mock_fetch_item_name.return_value = "audacity4"
     message = f"Nowy task stworzony audacity4 przez: {user_text_mention}"
     event = SimpleProjectItemEvent("audacity4", "norbiros", "created")
-    await bot.create_post(logger_mock, event, user_text_mention, shared_forum_channel_mock, rest_client_mock, [])
+    await bot.create_post(event, user_text_mention, shared_forum_channel_mock, rest_client_mock, [])
     mock_create_forum_post.assert_called_with(
         shared_forum_channel_mock.forum_channel, event.node_id, message, auto_archive_duration=10080, user_mentions=[]
     )
@@ -52,7 +50,6 @@ async def test_process_no_post(
     mock_create_post,
     rest_client_mock,
     shared_forum_channel_mock,
-    logger_mock,
     full_post_mock,
     user_text_mention,
 ):
@@ -68,12 +65,11 @@ async def test_process_no_post(
         1,
         shared_forum_channel_mock,
         state,
-        logger_mock,
     )
 
     assert state.empty()
     mock_create_post.assert_called_with(
-        logger_mock, event, user_text_mention, shared_forum_channel_mock, rest_client_mock, ["123456789012345678"]
+        event, user_text_mention, shared_forum_channel_mock, rest_client_mock, ["123456789012345678"]
     )
 
 
@@ -86,7 +82,6 @@ async def test_process_post_id_found(
     mock_fetch_channel,
     rest_client_mock,
     shared_forum_channel_mock,
-    logger_mock,
     full_post_mock,
     user_text_mention,
 ):
@@ -102,7 +97,6 @@ async def test_process_post_id_found(
         1,
         shared_forum_channel_mock,
         state,
-        logger_mock,
     )
 
     assert state.empty()
@@ -120,7 +114,6 @@ async def test_process_post_fetched(
     mock_create_post,
     rest_client_mock,
     shared_forum_channel_mock,
-    logger_mock,
     full_post_mock,
     user_text_mention,
 ):
@@ -135,7 +128,6 @@ async def test_process_post_fetched(
         1,
         shared_forum_channel_mock,
         state,
-        logger_mock,
     )
 
     assert state.empty()
@@ -152,7 +144,6 @@ async def test_process_post_not_guild_public_thread(
     mock_logger_error,
     rest_client_mock,
     shared_forum_channel_mock,
-    logger_mock,
     post_mock,
     user_text_mention,
 ):
@@ -167,7 +158,6 @@ async def test_process_post_not_guild_public_thread(
         1,
         shared_forum_channel_mock,
         state,
-        logger_mock,
     )
 
     assert state.empty()
@@ -185,7 +175,6 @@ async def test_process_post_created_message(
     mock_event_process,
     rest_client_mock,
     shared_forum_channel_mock,
-    logger_mock,
     full_post_mock,
     user_text_mention,
 ):
@@ -201,7 +190,6 @@ async def test_process_post_created_message(
         1,
         shared_forum_channel_mock,
         state,
-        logger_mock,
     )
 
     assert state.empty()
@@ -228,7 +216,7 @@ async def test_bot_run(
     state = asyncio.Queue()
 
     await bot.run(state, stop_after_one_event=True)
-    mock_process_update.assert_called_with(rest_client_mock, 1, 2, ANY, state, bot.get_bot_logger())
+    mock_process_update.assert_called_with(rest_client_mock, 1, 2, ANY, state)
 
 
 @patch("src.bot.fetch_forum_channel", new_callable=AsyncMock)

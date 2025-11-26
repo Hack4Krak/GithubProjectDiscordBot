@@ -6,7 +6,6 @@ from hikari import RESTApp
 from hikari.impl import RESTClientImpl
 
 from src.bot import run
-from src.tests.test_unit.test_bot import logger_mock  # noqa: F401 ruff recognizes fixture import as unused
 from src.tests.utils import (  # noqa: F401 ruff recognizes fixture import as unused
     MockShelf,
     RestClientContextManagerMock,
@@ -41,7 +40,6 @@ async def test_basic_event_only_creation(
     mock_fetch_item_name2,
     rest_client_mock,
     forum_channel_mock,
-    logger_mock,
 ):
     mock_os_getenv.side_effect = ["some_token", 1, 2, "some_path", "db-path.db"]
     mock_restapp_acquire.return_value = RestClientContextManagerMock(rest_client_mock)

@@ -1,17 +1,8 @@
-# ruff: noqa: F811 ruff recognizes fixture use as argument as redefinition
 from unittest.mock import AsyncMock, mock_open, patch
 
 from hikari import ForumTag, Snowflake
 from hikari.impl import RESTClientImpl
 
-from src.tests.utils import (  # noqa: F401 ruff recognizes fixture import as unused
-    forum_channel_mock,
-    full_post_mock,
-    post_mock,
-    rest_client_mock,
-    shared_forum_channel_mock,
-    user_text_mention,
-)
 from src.utils.data_types import (
     ProjectItemEditedAssignees,
     ProjectItemEditedBody,

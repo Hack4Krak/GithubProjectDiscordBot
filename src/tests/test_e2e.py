@@ -1,4 +1,3 @@
-# ruff: noqa: F811 ruff recognizes fixture use as argument as redefinition
 import asyncio
 import json
 from logging import Logger
@@ -11,13 +10,8 @@ from hikari.impl import RESTClientImpl
 from uvicorn import Config, Server
 
 from src.server import app
+from src.tests.conftest import MockShelf
 from src.tests.test_integration.test_bot import RestClientContextManagerMock
-from src.tests.utils import (  # noqa: F401 ruff recognizes fixture import as unused
-    MockShelf,
-    forum_channel_mock,
-    full_post_mock,
-    rest_client_mock,
-)
 from src.utils.signature_verification import generate_signature
 
 

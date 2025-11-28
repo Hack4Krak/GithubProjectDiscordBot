@@ -8,7 +8,7 @@ from aiohttp import ClientSession
 from fastapi.testclient import TestClient
 
 from src.server import app
-from src.tests.utils import MockResponse, MockShelf
+from src.tests.conftest import MockResponse, MockShelf
 from src.utils.signature_verification import generate_signature
 
 test_client = TestClient(app)

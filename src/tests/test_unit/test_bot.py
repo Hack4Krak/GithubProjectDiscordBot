@@ -1,4 +1,3 @@
-# ruff: noqa: F811 ruff recognizes fixture use as argument as redefinition
 import asyncio
 import logging
 from unittest.mock import ANY, AsyncMock, patch
@@ -8,18 +7,8 @@ from hikari import RESTApp
 from hikari.impl import RESTClientImpl
 
 from src import bot
-from src.tests.utils import (  # noqa: F401 ruff recognizes fixture import as unused
-    RestClientContextManagerMock,
-    forum_channel_mock,
-    full_post_mock,
-    post_mock,
-    rest_client_mock,
-    shared_forum_channel_mock,
-    user_text_mention,
-)
-from src.utils.data_types import (
-    SimpleProjectItemEvent,
-)
+from src.tests.conftest import RestClientContextManagerMock
+from src.utils.data_types import SimpleProjectItemEvent
 from src.utils.error import ForumChannelNotFound
 
 

@@ -1,13 +1,8 @@
-# ruff: noqa: F811 ruff recognizes fixture use as argument as redefinition
 import asyncio
 import logging
 from io import StringIO
 from unittest.mock import mock_open, patch
 
-from src.tests.utils import (  # noqa: F401 ruff recognizes fixture import as unused
-    forum_channel_mock,
-    shared_forum_channel_mock,
-)
 from src.utils import misc
 
 

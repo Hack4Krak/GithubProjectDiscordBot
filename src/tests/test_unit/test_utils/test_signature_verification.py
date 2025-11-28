@@ -1,4 +1,3 @@
-# ruff: noqa: F811 ruff recognizes fixture use as argument as redefinition
 from logging import Logger
 from unittest.mock import patch
 

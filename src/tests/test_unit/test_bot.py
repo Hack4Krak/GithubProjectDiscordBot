@@ -28,7 +28,7 @@ async def test_create_post(
     mock_shelf = MockShelf()
     mock_shelve_open.return_value = mock_shelf
     mock_create_forum_post.return_value = post_mock
-    message = f"Nowy task stworzony audacity4 przez: {user_text_mention}.\n Link do taska: https://github.com/orgs/my-org/projects/1?pane=issue&item_id=1"
+    message = f"Nowy task stworzony audacity4 przez: {user_text_mention}.\n Link do taska: https://github.com/orgs/my-org/projects/1?pane=issue&itemId=1"
     event = SimpleProjectItemEvent(1, "audacity4", "norbiros", "created")
     await bot.create_post(event, user_text_mention, shared_forum_channel_mock, rest_client_mock, [])
     mock_create_forum_post.assert_called_with(

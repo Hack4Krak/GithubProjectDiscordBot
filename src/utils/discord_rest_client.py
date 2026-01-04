@@ -31,11 +31,11 @@ async def get_post_id_or_post(
         name = await fetch_item_name(node_id)
         for thread in await rest_client.fetch_active_threads(discord_guild_id):
             if thread.name == name:
-                db[name] = thread.id
+                db[name] = str(thread.id)
                 return thread
         for thread in await rest_client.fetch_public_archived_threads(forum_channel_id):
             if thread.name == name:
-                db[name] = thread.id
+                db[name] = str(thread.id)
                 return thread
 
     return None

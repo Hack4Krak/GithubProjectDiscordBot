@@ -94,7 +94,7 @@ async def test_e2e(
         await asyncio.sleep(0.01)
     else:
         pytest.fail("Expected log 'body updated' not found in output")
-    assert post_id_shelf.get("audacity4") == 621
+    assert post_id_shelf.get("audacity4") == "621"
     mock_create_message.assert_called_with(
         621, "Opis taska zaktualizowany przez: nieznany użytkownik. Nowy opis: \nUpdated description", user_mentions=[]
     )

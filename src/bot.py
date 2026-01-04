@@ -1,5 +1,6 @@
 import asyncio
 import os
+import shelve
 
 from hikari import GuildPublicThread, RESTApp, TokenType
 from hikari.impl import RESTClientImpl
@@ -81,10 +82,16 @@ async def create_post(
         f" Link do taska: {create_item_link(event.item_id)}"
     )
     async with shared_forum_channel.lock.reader_lock:
-        return await client.create_forum_post(
+        post = await client.create_forum_post(
             shared_forum_channel.forum_channel,
             item_name,
             message,
             auto_archive_duration=10080,
             user_mentions=user_mentions,
         )
+
+    with shelve.open(os.getenv("POST_ID_DB_PATH", "post_id.db")) as db:
+        db[event.node_id] = str(post.id)
+        print("meow", db)
+
+    return post

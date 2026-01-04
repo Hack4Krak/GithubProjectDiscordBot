@@ -7,27 +7,34 @@ from hikari import RESTApp
 from hikari.impl import RESTClientImpl
 
 from src import bot
-from src.tests.conftest import RestClientContextManagerMock
+from src.tests.conftest import MockShelf, RestClientContextManagerMock
 from src.utils.data_types import SimpleProjectItemEvent
 from src.utils.error import ForumChannelNotFound
 
 
+@patch("shelve.open")
 @patch("src.bot.fetch_item_name", new_callable=AsyncMock)
 @patch.object(RESTClientImpl, "create_forum_post", new_callable=AsyncMock)
 async def test_create_post(
     mock_create_forum_post,
     mock_fetch_item_name,
+    mock_shelve_open,
     rest_client_mock,
     shared_forum_channel_mock,
     user_text_mention,
+    post_mock,
 ):
     mock_fetch_item_name.return_value = "audacity4"
+    mock_shelf = MockShelf()
+    mock_shelve_open.return_value = mock_shelf
+    mock_create_forum_post.return_value = post_mock
     message = f"Nowy task stworzony audacity4 przez: {user_text_mention}.\n Link do taska: https://github.com/orgs/my-org/projects/1?pane=issue&item_id=1"
     event = SimpleProjectItemEvent(1, "audacity4", "norbiros", "created")
     await bot.create_post(event, user_text_mention, shared_forum_channel_mock, rest_client_mock, [])
     mock_create_forum_post.assert_called_with(
         shared_forum_channel_mock.forum_channel, event.node_id, message, auto_archive_duration=10080, user_mentions=[]
     )
+    assert mock_shelf.get("audacity4") == "621"
 
 
 @patch("src.bot.create_post", new_callable=AsyncMock)

@@ -158,7 +158,7 @@ class ProjectItemEditedSingleSelect(ProjectItemEvent):
         client: RESTClientImpl,
         shared_forum_channel: SharedForumChannel,
         forum_channel_id: int,
-    ) -> None:
+    ) -> str:
         async with shared_forum_channel.lock.reader_lock:
             available_tags = list(shared_forum_channel.forum_channel.available_tags)
         current_tag_ids = list(post.applied_tag_ids)
@@ -186,6 +186,11 @@ class ProjectItemEditedSingleSelect(ProjectItemEvent):
 
         await client.edit_channel(post.id, applied_tags=current_tag_ids)
         bot_logger.info(f"Post {self.node_id} tag updated to {new_tag_name}.")
+
+        message = (
+            f"Tag '{self.value_type.value}' zaktualizowany przez: {user_text_mention}. Nowa wartość: {self.new_value}"
+        )
+        return message
 
 
 class ProjectItemEditedDate(ProjectItemEvent):

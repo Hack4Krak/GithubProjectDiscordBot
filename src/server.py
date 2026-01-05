@@ -9,6 +9,7 @@ from src.main import lifespan
 from src.utils.data_types import (
     ProjectItemEditedAssignees,
     ProjectItemEditedBody,
+    ProjectItemEditedDate,
     ProjectItemEditedSingleSelect,
     ProjectItemEditedTitle,
     ProjectItemEvent,
@@ -86,7 +87,13 @@ async def process_action(body: WebhookRequest) -> ProjectItemEvent:
 
 async def process_edition(
     body: WebhookRequest,
-) -> ProjectItemEditedBody | ProjectItemEditedTitle | ProjectItemEditedAssignees | ProjectItemEditedSingleSelect:
+) -> (
+    ProjectItemEditedBody
+    | ProjectItemEditedTitle
+    | ProjectItemEditedAssignees
+    | ProjectItemEditedSingleSelect
+    | ProjectItemEditedDate
+):
     editor = body.sender.node_id
     body_changed = body.changes.body
     item_node_id = body.projects_v2_item.node_id
@@ -125,4 +132,8 @@ async def process_edition(
         case "iteration":
             new_value = field_changed.to.title
             project_item_edited = ProjectItemEditedSingleSelect(item_id, item_node_id, editor, new_value, "Iteration")
+            return project_item_edited
+        case "date":
+            new_value = field_changed.to.split("T")[0]
+            project_item_edited = ProjectItemEditedDate(item_id, item_node_id, editor, new_value)
             return project_item_edited

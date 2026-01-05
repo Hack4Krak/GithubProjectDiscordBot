@@ -10,6 +10,7 @@ from src.utils.data_types import (
     FieldValueTo,
     ProjectItemEditedAssignees,
     ProjectItemEditedBody,
+    ProjectItemEditedDate,
     ProjectItemEditedSingleSelect,
     ProjectItemEditedTitle,
     ProjectV2Item,
@@ -72,6 +73,15 @@ async def test_process_edition_iteration_changed(mock_webhook_request_model):
         field_value=FieldValue(field_name="Iteration", field_type="iteration", to=FieldValueTo(title=new_title))
     )
     expected_object = ProjectItemEditedSingleSelect(1, "node_id", "node_id", new_title, "Iteration")
+
+    assert await process_edition(mock_webhook_request_model) == expected_object
+
+
+async def test_process_edition_date_changed(mock_webhook_request_model):
+    mock_webhook_request_model.changes = Changes(
+        field_value=FieldValue(field_name="Date", field_type="date", to="2024-12-31T23:59:59Z")
+    )
+    expected_object = ProjectItemEditedDate(1, "node_id", "node_id", "2024-12-31")
 
     assert await process_edition(mock_webhook_request_model) == expected_object
 

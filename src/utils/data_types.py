@@ -188,6 +188,25 @@ class ProjectItemEditedSingleSelect(ProjectItemEvent):
         bot_logger.info(f"Post {self.node_id} tag updated to {new_tag_name}.")
 
 
+class ProjectItemEditedDate(ProjectItemEvent):
+    def __init__(self, item_id: int, node_id: str, editor: str, new_date: str):
+        super().__init__(item_id, node_id, editor)
+        self.new_date = new_date
+
+    async def process(
+        self,
+        user_text_mention: str,
+        post: GuildPublicThread,
+        client: RESTClientImpl,
+        _shared_forum_channel: SharedForumChannel,
+        forum_channel_id: int,
+    ) -> str:
+        message = f"Data zadania zaktualizowana przez: {user_text_mention}. Nowa data: {self.new_date}"
+        bot_logger.info(f"Post {self.node_id} date updated.")
+
+        return message
+
+
 class ProjectV2Item(BaseModel):
     item_id: int = Field(alias="id")
     node_id: str
@@ -225,18 +244,28 @@ class FieldValueTo(BaseModel):
 
 
 class FieldValue(BaseModel):
-    field_type: Literal["assignees", "title", "single_select", "iteration"]
-    to: FieldValueTo | None = None
+    field_type: Literal["assignees", "title", "single_select", "iteration", "date"]
+    to: FieldValueTo | str | None = None
     field_name: str
 
     model_config = ConfigDict(extra="allow")
 
     @model_validator(mode="after")
-    def check_iteration_must_have_to(self):
-        if self.field_type == "iteration" and self.to is None:
+    def check_iteration_and_date_must_have_to(self):
+        if self.field_type in ["iteration", "date"] and self.to is None:
             raise PydanticCustomError(
                 "missing_to",
-                "'to' must be provided in field_value when field_type is 'single_select' or 'iteration'",
+                "'to' must be provided in field_value when field_type is 'date' or 'iteration'",
+            )
+        elif self.field_type == "date" and type(self.to) is not str:
+            raise PydanticCustomError(
+                "invalid_to",
+                "'to' must be a string representing the date when field_type is 'date'",
+            )
+        elif self.field_type == "iteration" and not isinstance(self.to, FieldValueTo):
+            raise PydanticCustomError(
+                "invalid_to",
+                "'to' must be an FieldValueTo object when field_type is 'iteration'",
             )
         return self
 

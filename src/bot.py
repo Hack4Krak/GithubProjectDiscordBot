@@ -64,8 +64,18 @@ async def process_update(
         return
 
     message = await event.process(user_text_mention, post, client, shared_forum_channel, forum_channel_id)
-    if message:
-        await client.create_message(post.id, message, user_mentions=user_mentions)
+    if not message:
+        return
+
+    messages = []
+    while len(message) > 2000:
+        messages.append(message[:2000])
+        message = message[2000:]
+
+    messages.append(message)
+
+    for msg in messages:
+        await client.create_message(post.id, msg, user_mentions=user_mentions)
 
 
 async def create_post(

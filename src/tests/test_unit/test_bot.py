@@ -8,7 +8,7 @@ from hikari.impl import RESTClientImpl
 
 from src import bot
 from src.tests.conftest import MockShelf, RestClientContextManagerMock
-from src.utils.data_types import SimpleProjectItemEvent
+from src.utils.data_types import ProjectItemEditedBody, SimpleProjectItemEvent
 from src.utils.error import ForumChannelNotFound
 
 
@@ -175,6 +175,34 @@ async def test_process_post_created_message(
     )
 
     mock_create_message.assert_called_with(621, "Test message content", user_mentions=["123456789012345678"])
+
+
+@patch("src.bot.retrieve_discord_id")
+@patch.object(RESTClientImpl, "create_message", new_callable=AsyncMock)
+@patch("src.bot.get_post_id_or_post", new_callable=AsyncMock)
+async def test_process_message_over_2000_chars(
+    mock_get_post_id_or_post,
+    mock_create_message,
+    mock_retrieve_discord_id,
+    rest_client_mock,
+    shared_forum_channel_mock,
+    full_post_mock,
+    user_text_mention,
+):
+    mock_retrieve_discord_id.return_value = "123456789012345678"
+    mock_get_post_id_or_post.return_value = full_post_mock
+    long_message = "A" * 4500
+    event = ProjectItemEditedBody(1, "audacity4", "Norbiros", long_message)
+
+    await bot.process_update(
+        rest_client_mock,
+        1,
+        1,
+        shared_forum_channel_mock,
+        event,
+    )
+
+    assert mock_create_message.call_count == 3
 
 
 @patch("src.bot.process_update", new_callable=AsyncMock)

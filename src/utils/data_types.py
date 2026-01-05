@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Literal
 
-from hikari import ForumTag, GuildForumChannel, GuildPublicThread
+from hikari import ForumTag, GuildPublicThread
 from hikari.impl import RESTClientImpl
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from pydantic_core import PydanticCustomError
@@ -42,7 +42,7 @@ class ProjectItemEvent:
         client: RESTClientImpl,
         shared_forum_channel: SharedForumChannel,
         forum_channel_id: int,
-    ) -> str | GuildForumChannel | None:
+    ) -> str | None:
         """
         Interface method to process the event and optionally return message to be posted in Discord.
         """
